@@ -1,0 +1,66 @@
+
+# Aegis LibPolyCall - Development Artifacts
+# =========================================
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Development artifacts
+*_backup*/
+migration_backup/
+organization_backup*/
+*.log
+*.tmp
+.DS_Store
+
+# IDE artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.o
+*.d
+*.a
+*.so
+bin/polycall
+libpolycall-v1trail/build/
+libpolycall-v1trail/lib/
+
+# Configuration artifacts
+.env
+.env.local
+.env.*.local
+
+# Test artifacts
+coverage/
+.coverage
+.pytest_cache/
+node_modules/
+npm-debug.log*
+
+# Documentation build artifacts
+docs/_build/
+docs/.doctrees/
+

@@ -1,0 +1,300 @@
+# polycall.config.hotwire.yaml
+# OBINexus LibPolyCall v2 Hotwiring Configuration
+# Constitutional Setup for Hot-Wiring Architecture
+# Version: 2.0.0
+
+# Schema and version information
+schema_version: "2.0.0"
+config_format: "hotwire_yaml"
+constitutional_compliance: true
+
+# Core hotwiring configuration
+hotwiring:
+  enabled: true
+  version_major: 2
+  version_minor: 0
+  version_patch: 0
+  
+  # Constitutional requirements
+  enable_audit: true
+  enable_v1_compatibility: true
+  enable_constitutional_mode: true
+  
+  # Execution configuration
+  default_execution_mode: "stateless"  # Constitutional requirement
+  default_compatibility_mode: "v1_strict"
+  max_concurrent_routes: 64
+  route_timeout_ms: 30000
+  
+  # Performance tuning
+  enable_caching: true
+  cache_size_mb: 128
+  cache_ttl_seconds: 3600
+
+# Security configuration per Node-Zero requirements
+security:
+  enable_zero_trust: true
+  enable_audit_trail: true
+  enable_integrity_checks: true
+  
+  # Certificate configuration
+  cert_path: "/etc/polycall/certs/server.crt"
+  key_path: "/etc/polycall/certs/server.key"
+  ca_path: "/etc/polycall/certs/ca.crt"
+  
+  # Authentication settings
+  auth_timeout_ms: 10000
+  max_auth_attempts: 3
+  require_mutual_tls: true
+  
+  # Audit configuration
+  audit_level: "constitutional"  # constitutional, detailed, basic, disabled
+  audit_log_path: "/var/log/polycall/hotwire_audit.log"
+  audit_max_file_size_mb: 100
+  audit_retention_days: 365
+
+# Telemetry configuration for constitutional compliance
+telemetry:
+  enabled: true
+  enable_performance_metrics: true
+  enable_constitutional_audit: true
+  
+  # Telemetry endpoints
+  telemetry_endpoint: "https://telemetry.obinexus.org/hotwire"
+  metrics_endpoint: "https://metrics.obinexus.org/polycall"
+  
+  # Buffer and timing settings
+  flush_interval_ms: 5000
+  max_buffer_size: 10485760  # 10MB
+  batch_size: 1000
+  
+  # Retention and compression
+  enable_compression: true
+  compression_level: 6
+  local_retention_hours: 72
+
+# Protocol route definitions
+routes:
+  # Core v1 compatibility routes
+  - name: "v1_core_compat"
+    source_protocol: "polycall.v1.core"
+    target_protocol: "polycall.v2.core"
+    execution_mode: "stateless"
+    compatibility_mode: "v1_strict"
+    priority: 100
+    timeout_ms: 15000
+    enable_fallback: true
+    enable_caching: true
+    config_file: "/etc/polycall/routes/v1_core.conf"
+    
+  - name: "v1_command_compat"
+    source_protocol: "polycall.v1.command"
+    target_protocol: "polycall.v2.command"
+    execution_mode: "stateless"
+    compatibility_mode: "v1_strict"
+    priority: 90
+    timeout_ms: 20000
+    enable_fallback: true
+    enable_caching: false
+    config_file: "/etc/polycall/routes/v1_command.conf"
+    
+  - name: "v1_binding_compat"
+    source_protocol: "polycall.v1.binding"
+    target_protocol: "polycall.v2.binding"
+    execution_mode: "stateless"
+    compatibility_mode: "v1_strict"
+    priority: 80
+    timeout_ms: 25000
+    enable_fallback: true
+    enable_caching: true
+    config_file: "/etc/polycall/routes/v1_binding.conf"
+
+  # Native v2 hotwiring routes
+  - name: "python_binding_hotwire"
+    source_protocol: "python.polycall"
+    target_protocol: "polycall.v2.python"
+    execution_mode: "stateless"
+    compatibility_mode: "v2_native"
+    priority: 70
+    timeout_ms: 10000
+    enable_fallback: false
+    enable_caching: true
+    config_file: "/etc/polycall/routes/python_binding.conf"
+    
+  - name: "node_binding_hotwire"
+    source_protocol: "node.polycall"
+    target_protocol: "polycall.v2.node"
+    execution_mode: "stateless"
+    compatibility_mode: "v2_native"
+    priority: 70
+    timeout_ms: 10000
+    enable_fallback: false
+    enable_caching: true
+    config_file: "/etc/polycall/routes/node_binding.conf"
+    
+  - name: "java_binding_hotwire"
+    source_protocol: "java.polycall"
+    target_protocol: "polycall.v2.java"
+    execution_mode: "stateless"
+    compatibility_mode: "v2_native"
+    priority: 70
+    timeout_ms: 15000
+    enable_fallback: false
+    enable_caching: true
+    config_file: "/etc/polycall/routes/java_binding.conf"
+    
+  - name: "go_binding_hotwire"
+    source_protocol: "go.polycall"
+    target_protocol: "polycall.v2.go"
+    execution_mode: "stateless"
+    compatibility_mode: "v2_native"
+    priority: 70
+    timeout_ms: 8000
+    enable_fallback: false
+    enable_caching: true
+    config_file: "/etc/polycall/routes/go_binding.conf"
+
+  # Experimental hotwiring routes
+  - name: "riftlang_integration"
+    source_protocol: "riftlang.polycall"
+    target_protocol: "polycall.v2.riftlang"
+    execution_mode: "stateful"  # Requires OBIAxis approval
+    compatibility_mode: "v2_native"
+    priority: 50
+    timeout_ms: 30000
+    enable_fallback: false
+    enable_caching: false
+    config_file: "/etc/polycall/routes/riftlang.conf"
+    
+  - name: "gosilang_thread_safe"
+    source_protocol: "gosilang.polycall"
+    target_protocol: "polycall.v2.gosilang"
+    execution_mode: "stateless"
+    compatibility_mode: "v2_native"
+    priority: 60
+    timeout_ms: 12000
+    enable_fallback: false
+    enable_caching: true
+    config_file: "/etc/polycall/routes/gosilang.conf"
+
+# Fallback and error handling
+fallback:
+  enable_global_fallback: true
+  fallback_timeout_ms: 5000
+  max_fallback_attempts: 3
+  fallback_strategy: "v1_compatibility"  # v1_compatibility, graceful_degradation, fail_fast
+  
+  # Error handling
+  enable_error_recovery: true
+  error_recovery_delay_ms: 1000
+  max_error_recovery_attempts: 5
+
+# Monitoring and alerting
+monitoring:
+  enable_health_checks: true
+  health_check_interval_ms: 30000
+  health_check_timeout_ms: 5000
+  
+  # Alerting thresholds
+  error_rate_threshold_percent: 5.0
+  latency_threshold_ms: 1000
+  memory_usage_threshold_percent: 80.0
+  
+  # Alert destinations
+  alert_webhook_url: "https://alerts.obinexus.org/webhook/hotwire"
+  alert_email: "alerts@obinexuscomputing.com"
+  enable_slack_alerts: true
+  slack_webhook_url: "https://hooks.slack.com/services/..."
+
+# Development and testing configuration
+development:
+  enable_debug_mode: false
+  enable_verbose_logging: false
+  enable_trace_logging: false
+  log_level: "info"  # trace, debug, info, warn, error, fatal
+  
+  # Testing configuration
+  enable_test_routes: false
+  test_data_path: "/opt/polycall/test_data"
+  mock_external_services: false
+
+# File system paths and configuration
+paths:
+  # Core configuration
+  polycallrc_path: "${HOME}/.polycallrc"
+  config_dir: "/etc/polycall"
+  data_dir: "/var/lib/polycall"
+  cache_dir: "/var/cache/polycall"
+  log_dir: "/var/log/polycall"
+  
+  # Runtime directories
+  pid_file: "/var/run/polycall/hotwire.pid"
+  socket_dir: "/var/run/polycall/sockets"
+  temp_dir: "/tmp/polycall"
+
+# Integration with other OBINexus systems
+integration:
+  # NLink integration
+  enable_nlink: true
+  nlink_endpoint: "tcp://nlink.obinexus.org:9090"
+  nlink_auth_token: "${NLINK_AUTH_TOKEN}"
+  
+  # PolyBuild integration
+  enable_polybuild: true
+  polybuild_endpoint: "https://polybuild.obinexus.org/api/v2"
+  polybuild_api_key: "${POLYBUILD_API_KEY}"
+  
+  # OBIX integration
+  enable_obix: true
+  obix_ui_endpoint: "wss://obix.obinexus.org/ws"
+  
+  # Node-Zero integration
+  enable_node_zero: true
+  node_zero_endpoint: "https://node-zero.obinexus.org/v1"
+  node_zero_certificate: "/etc/polycall/certs/node-zero.crt"
+
+# Environment-specific overrides
+environment_overrides:
+  development:
+    hotwiring.enable_audit: false
+    security.audit_level: "basic"
+    telemetry.enabled: false
+    development.enable_debug_mode: true
+    development.enable_verbose_logging: true
+    
+  testing:
+    hotwiring.enable_audit: true
+    security.audit_level: "detailed"
+    telemetry.enabled: true
+    development.enable_test_routes: true
+    fallback.enable_global_fallback: false
+    
+  staging:
+    hotwiring.enable_audit: true
+    security.audit_level: "constitutional"
+    telemetry.enabled: true
+    monitoring.enable_health_checks: true
+    
+  production:
+    hotwiring.enable_audit: true
+    hotwiring.enable_constitutional_mode: true
+    security.audit_level: "constitutional"
+    telemetry.enabled: true
+    telemetry.enable_constitutional_audit: true
+    monitoring.enable_health_checks: true
+    development.enable_debug_mode: false
+
+# Constitutional compliance metadata
+constitutional:
+  obiaxis_governance: true
+  starugueto_oversight: true
+  division_authority: "OpenACE Computing"
+  compliance_version: "1.0.0"
+  last_compliance_check: "2025-06-17T00:00:00Z"
+  compliance_officer: "OBINexus Constitutional Authority"
+  
+  # Audit trail requirements
+  audit_retention_years: 7
+  audit_encryption_required: true
+  audit_tamper_protection: true
+  audit_chain_validation: true

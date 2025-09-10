@@ -1,0 +1,90 @@
+*CBLPolyCall Main Program v1.0
+      *OBINexus Aegis Engineering - PolyCall COBOL Client  
+      *Technical Lead: Nnamdi Michael Okpala
+      
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CBLPOLYCALL-MAIN.
+       
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  WS-OPERATION            PIC X(20).
+       01  WS-INPUT-DATA           PIC X(1024).
+       01  WS-OUTPUT-DATA          PIC X(1024).
+       01  WS-RESULT-CODE          PIC 9(4) COMP.
+       01  WS-CONTINUE-FLAG        PIC X VALUE "Y".
+       
+       PROCEDURE DIVISION.
+       MAIN-PROCEDURE.
+           DISPLAY "CBLPolyCall Client v1.0 - Aegis Engineering"
+           DISPLAY "=============================================="
+           
+           PERFORM UNTIL WS-CONTINUE-FLAG = "N"
+               DISPLAY " "
+               DISPLAY "Available Operations:"
+               DISPLAY "1. CONNECT"
+               DISPLAY "2. SEND_MESSAGE" 
+               DISPLAY "3. RECEIVE_MESSAGE"
+               DISPLAY "4. DISCONNECT"
+               DISPLAY "5. EXIT"
+               DISPLAY " "
+               DISPLAY "Enter operation: " WITH NO ADVANCING
+               ACCEPT WS-OPERATION
+               
+               EVALUATE WS-OPERATION
+                   WHEN "1"
+                       MOVE "CONNECT" TO WS-OPERATION
+                       DISPLAY "Enter connection data: "
+                           WITH NO ADVANCING
+                       ACCEPT WS-INPUT-DATA
+                       PERFORM CALL-BRIDGE
+                   WHEN "CONNECT"
+                       DISPLAY "Enter connection data: "
+                           WITH NO ADVANCING
+                       ACCEPT WS-INPUT-DATA
+                       PERFORM CALL-BRIDGE
+                   WHEN "2"
+                       MOVE "SEND_MESSAGE" TO WS-OPERATION
+                       DISPLAY "Enter message to send: "
+                           WITH NO ADVANCING
+                       ACCEPT WS-INPUT-DATA
+                       PERFORM CALL-BRIDGE
+                   WHEN "SEND_MESSAGE"
+                       DISPLAY "Enter message to send: "
+                           WITH NO ADVANCING
+                       ACCEPT WS-INPUT-DATA
+                       PERFORM CALL-BRIDGE
+                   WHEN "3"
+                       MOVE "RECEIVE_MESSAGE" TO WS-OPERATION
+                       MOVE SPACES TO WS-INPUT-DATA
+                       PERFORM CALL-BRIDGE
+                   WHEN "RECEIVE_MESSAGE"
+                       MOVE SPACES TO WS-INPUT-DATA
+                       PERFORM CALL-BRIDGE
+                   WHEN "4"
+                       MOVE "DISCONNECT" TO WS-OPERATION
+                       MOVE SPACES TO WS-INPUT-DATA
+                       PERFORM CALL-BRIDGE
+                   WHEN "DISCONNECT"
+                       MOVE SPACES TO WS-INPUT-DATA
+                       PERFORM CALL-BRIDGE
+                   WHEN "5"
+                       MOVE "N" TO WS-CONTINUE-FLAG
+                   WHEN "EXIT"
+                       MOVE "N" TO WS-CONTINUE-FLAG
+                   WHEN OTHER
+                       DISPLAY "Invalid operation. Please try again."
+               END-EVALUATE
+           END-PERFORM
+           
+           DISPLAY "CBLPolyCall Client terminated."
+           STOP RUN.
+       
+       CALL-BRIDGE.
+           CALL "POLYCALL-BRIDGE" USING WS-OPERATION,
+                                       WS-INPUT-DATA,
+                                       WS-OUTPUT-DATA,
+                                       WS-RESULT-CODE
+           
+           DISPLAY "Operation: " WS-OPERATION
+           DISPLAY "Result Code: " WS-RESULT-CODE
+           DISPLAY "Output: " WS-OUTPUT-DATA.
