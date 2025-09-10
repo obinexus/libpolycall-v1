@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.16)
+project(LibPolyCall VERSION 1.1.0 LANGUAGES C CXX)
+
+# Version info
+set(LIBPOLYCALL_VERSION_MAJOR 1)
+set(LIBPOLYCALL_VERSION_MINOR 1)
+set(LIBPOLYCALL_VERSION_PATCH 0)
+
+# Add new bindings
+add_subdirectory(bindings/cbl-polycall)
+add_subdirectory(polycall-v1)

@@ -99,3 +99,15 @@ The debugging nightmare of distributed systems is over—if you implement intell
 ---
 
 *"In a world of language silos, be the universal protocol. In an age of security breaches, be the zero-trust solution. In an era of blind systems, be the intelligent observer. The future isn't coming—it's here, and it's written in C."*
+## Version 1.1.0 - Unified Architecture (2024-09-10)
+
+### What's New
+- **COBOL Binding**: Enterprise mainframe integration via cbl-polycall
+- **Unified Codebase**: Merged polycall repository into libpolycall
+- **Enhanced Build System**: Improved CMake configuration
+- **Expanded Documentation**: Legal framework and DOP architecture docs
+
+### Migration Notes
+- Original polycall v1 preserved in `polycall-v1/` directory
+- All bindings now in unified `bindings/` structure
+- See MIGRATION_REPORT.md for full details
