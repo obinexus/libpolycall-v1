@@ -111,3 +111,9 @@ The debugging nightmare of distributed systems is over—if you implement intell
 - Original polycall v1 preserved in `polycall-v1/` directory
 - All bindings now in unified `bindings/` structure
 - See MIGRATION_REPORT.md for full details
+
+## 🌐 LibPolyCall as Infrastructure as a Service (IaaS)
+
+LibPolyCall is the **polymorphic binding layer** that powers OBINexus Web IaaS platform:
+
+### Web IaaS Architecture
