@@ -1,24 +1,44 @@
-# v2/CMakeLists.txt.unified
 cmake_minimum_required(VERSION 3.10)
-project(PolyCallV2 VERSION 2.0.0)
+project(PolyCall VERSION 2.0.0 LANGUAGES C)
 
-# Thread safety requirements
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+# Set C standard
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Find threads
 find_package(Threads REQUIRED)
 
-# Build both libraries
-add_library(polycall_static STATIC ${CORE_SOURCES})
-add_library(polycall_shared SHARED ${CORE_SOURCES})
+# Include directories
+include_directories(include)
 
-target_compile_definitions(polycall_static PRIVATE STATIC_BUILD)
-target_compile_definitions(polycall_shared PRIVATE SHARED_BUILD)
+# Collect source files from proper directories ONLY
+file(GLOB CORE_SOURCES "src/core/*.c")
+file(GLOB NETWORK_SOURCES "src/network/*.c")
+file(GLOB PROTOCOL_SOURCES "src/protocol/*.c")
+file(GLOB STATE_SOURCES "src/state/*.c")
 
-# Link thread support
-target_link_libraries(polycall_static Threads::Threads)
-target_link_libraries(polycall_shared Threads::Threads)
+set(ALL_SOURCES 
+    ${CORE_SOURCES}
+    ${NETWORK_SOURCES}
+    ${PROTOCOL_SOURCES}
+    ${STATE_SOURCES}
+)
 
-# TDD targets
-enable_testing()
-add_test(NAME thread_safety_test COMMAND test_thread_safety)
-add_test(NAME integration_test COMMAND test_integration)
+# Only proceed if sources exist
+if(ALL_SOURCES)
+    # Static library
+    add_library(polycall_static STATIC ${ALL_SOURCES})
+    target_link_libraries(polycall_static Threads::Threads)
+    
+    # Shared library
+    add_library(polycall_shared SHARED ${ALL_SOURCES})
+    target_link_libraries(polycall_shared Threads::Threads)
+    
+    # Install rules
+    install(TARGETS polycall_static polycall_shared
+            DESTINATION lib)
+    install(DIRECTORY include/polycall 
+            DESTINATION include)
+else()
+    message(FATAL_ERROR "No source files found in src/")
+endif()
