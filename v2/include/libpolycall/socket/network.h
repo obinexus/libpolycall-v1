@@ -1,5 +1,5 @@
-#ifndef NETWORK_H
-#define NETWORK_H
+#ifndef LIBPOLYCALL_SOCKET_NETWORK_H
+#define LIBPOLYCALL_SOCKET_NETWORK_H
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -128,4 +128,4 @@ void net_cleanup_client_state(ClientState* state);
 void net_init_program(NetworkProgram* program);
 void net_cleanup_program(NetworkProgram* program);
 
-#endif // NETWORK_H
+#endif // LIBPOLYCALL_SOCKET_NETWORK_H

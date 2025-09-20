@@ -125,4 +125,4 @@ PolycallAST* polycall_ast_optimize(const PolycallAST* ast, uint32_t level);
 }
 #endif
 
-#endif // POLYCALL_PARSER_H
+#endif // LIBPOLYCALL_CORE_PARSER_H

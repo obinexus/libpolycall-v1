@@ -171,4 +171,4 @@ bool polycall_protocol_is_connected(const polycall_protocol_context_t* ctx);
 bool polycall_protocol_is_authenticated(const polycall_protocol_context_t* ctx);
 bool polycall_protocol_is_error(const polycall_protocol_context_t* ctx);
 
-#endif // POLYCALL_PROTOCOL_H
+#endif // LIBPOLYCALL_SOCKET_PROTOCOL_H

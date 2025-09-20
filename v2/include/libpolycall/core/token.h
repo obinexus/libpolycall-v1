@@ -103,4 +103,4 @@ bool polycall_value_equals(const PolycallValue* a, const PolycallValue* b);
 }
 #endif
 
-#endif // POLYCALL_TOKEN_H
+#endif // LIBPOLYCALL_CORE_TOKEN_H

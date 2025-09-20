@@ -106,4 +106,4 @@ extern const PolycallTokenizerConfig POLYCALL_TOKENIZER_DEFAULT_CONFIG;
 }
 #endif
 
-#endif // POLYCALL_TOKENIZER_H
+#endif // LIBPOLYCALL_CORE_TOKENIZER_H

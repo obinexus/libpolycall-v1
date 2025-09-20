@@ -1,5 +1,5 @@
-#ifndef POLYCALL_H
-#define POLYCALL_H
+#ifndef LIBPOLYCALL_CORE_POLYCALL_H
+#define LIBPOLYCALL_CORE_POLYCALL_H
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -76,4 +76,4 @@ const char* polycall_get_last_error(polycall_context_t ctx);
 }
 #endif
 
-#endif /* POLYCALL_H */
+#endif // LIBPOLYCALL_CORE_POLYCALL_H */

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features xmlns="http://obinexus.com/schema/features">
+    <feature name="core" enabled="true">
+        <description>Core polymorphic binding functionality</description>
+        <modules>
+            <module>polycall</module>
+            <module>token</module>
+            <module>tokenizer</module>
+            <module>context</module>
+            <module>parser</module>
+            <module>state_machine</module>
+        </modules>
+        <dependencies/>
+    </feature>
+    
+    <feature name="adapter" enabled="true">
+        <description>DOP adapter system for language bindings</description>
+        <modules>
+            <module>polycall_dop_adapter</module>
+            <module>polycall_dop_adapter_invoke</module>
+            <module>polycall_dop_adapter_lifecycle</module>
+            <module>polycall_dop_adapter_memory</module>
+            <module>polycall_dop_adapter_security</module>
+            <module>polycall_dop_adapter_utils</module>
+            <module>polycall_dop_bridge_registry</module>
+        </modules>
+        <dependencies>
+            <dependency>core</dependency>
+        </dependencies>
+    </feature>
+    
+    <feature name="hotwire" enabled="true">
+        <description>Hot-swapping and dynamic reload system</description>
+        <modules>
+            <module>hotwire</module>
+            <module>hotwire_router</module>
+            <module>hotwire_loader</module>
+        </modules>
+        <dependencies>
+            <dependency>core</dependency>
+            <dependency>adapter</dependency>
+        </dependencies>
+    </feature>
+    
+    <feature name="socket" enabled="true">
+        <description>Network communication layer</description>
+        <modules>
+            <module>polycall_socket</module>
+            <module>polycall_socket_config</module>
+            <module>polycall_socket_endpoint</module>
+            <module>polycall_socket_protocol</module>
+            <module>polycall_socket_security</module>
+            <module>polycall_socket_worker</module>
+        </modules>
+        <dependencies>
+            <dependency>core</dependency>
+        </dependencies>
+    </feature>
+    
+    <feature name="micro" enabled="true">
+        <description>Microservice architecture support</description>
+        <modules>
+            <module>service_base</module>
+            <module>banking_service</module>
+            <module>auth_service</module>
+            <module>document_service</module>
+            <module>analytics_service</module>
+        </modules>
+        <dependencies>
+            <dependency>core</dependency>
+            <dependency>socket</dependency>
+        </dependencies>
+    </feature>
+    
+    <feature name="nlm" enabled="true">
+        <description>NLM-Atlas integration with AVL-Huffman</description>
+        <modules>
+            <module>atlas</module>
+            <module>atlas_avl_huffman</module>
+            <module>namespace_resolver</module>
+        </modules>
+        <dependencies>
+            <dependency>core</dependency>
+            <dependency>socket</dependency>
+        </dependencies>
+    </feature>
+    
+    <feature name="stream" enabled="true">
+        <description>Event streaming and real-time communication</description>
+        <modules>
+            <module>stream</module>
+            <module>event_bus</module>
+            <module>websocket</module>
+            <module>sse</module>
+            <module>grpc</module>
+        </modules>
+        <dependencies>
+            <dependency>core</dependency>
+            <dependency>socket</dependency>
+        </dependencies>
+    </feature>
+    
+    <feature name="zero" enabled="true">
+        <description>Zero-trust security framework</description>
+        <modules>
+            <module>trust</module>
+            <module>crypto_seed</module>
+            <module>token_manager</module>
+            <module>jwt</module>
+        </modules>
+        <dependencies>
+            <dependency>core</dependency>
+        </dependencies>
+    </feature>
+</features>
