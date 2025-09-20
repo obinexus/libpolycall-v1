@@ -1,0 +1,97 @@
+@startuml LibPolyCall Native Binding Philosophy
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontSize 11
+skinparam defaultFontStyle normal
+skinparam componentStyle rectangle
+
+title LibPolyCall Polyglot FFI Architecture\n"Square = Pure Native Binding | Rectangle = Extended Plugin"
+
+' Core LibPolyCall Runtime
+package "LibPolyCall Core" {
+  [libpolycall.a] #FFE6E6
+  [libpolycall.so] #FFE6E6
+  [polycall.exe\nRuntime:8089] #FFCCCC
+  
+  libpolycall.a --> libpolycall.so : static→shared
+  libpolycall.so --> polycall.exe : FFI
+}
+
+' Square Bindings - Pure FFI (Equal Sides)
+package "Native FFI Bindings □" <<Rectangle>> {
+  component "pypolycall.so" <<square>> #CCE5FF {
+    file verify_pypolycall.py
+    note right : Test SUCCESS on 8089
+  }
+  
+  component "node_polycall.node" <<square>> #CCE5FF {
+    file main.js
+  }
+  
+  component "jpolycall.jar" <<square>> #CCE5FF {
+    file Main.java
+  }
+  
+  component "cblpolycall.a" <<square>> #CCE5FF {
+    file main.cbl
+  }
+  
+  component "gopolycall.so" <<square>> #CCE5FF {
+    file main.go
+  }
+  
+  component "rustpolycall.rlib" <<square>> #CCE5FF {
+    file main.rs
+  }
+}
+
+' Rectangle Plugins - Extended (Unequal Sides)  
+package "Extended Plugins ▭" <<Rectangle>> {
+  component "Django\nExtension" <<rectangle>> #E6FFE6
+  component "Flask\nExtension" <<rectangle>> #E6FFE6
+  component "Spring\nExtension" <<rectangle>> #E6FFE6
+  component "Express\nExtension" <<rectangle>> #E6FFE6
+}
+
+' FFI Protocol Layer
+cloud "FFI Protocol Bridge" {
+  usecase "ctypes" as ctypes_ffi
+  usecase "JNI" as jni_ffi
+  usecase "N-API" as napi_ffi
+  usecase "CGO" as cgo_ffi
+  usecase "COBOL-C" as cobol_ffi
+  usecase "Rust-FFI" as rust_ffi
+}
+
+' Connections showing native FFI flow
+polycall.exe ..> ctypes_ffi : port:8089
+polycall.exe ..> jni_ffi
+polycall.exe ..> napi_ffi
+polycall.exe ..> cgo_ffi
+polycall.exe ..> cobol_ffi
+polycall.exe ..> rust_ffi
+
+ctypes_ffi --> pypolycall.so : native
+jni_ffi --> jpolycall.jar : native
+napi_ffi --> node_polycall.node : native
+cgo_ffi --> gopolycall.so : native
+cobol_ffi --> cblpolycall.a : native
+rust_ffi --> rustpolycall.rlib : native
+
+' Plugin extensions
+pypolycall.so --> Django : extend
+pypolycall.so --> Flask : extend
+jpolycall.jar --> Spring : extend
+node_polycall.node --> Express : extend
+
+' Legend
+note bottom
+  **Native Binding Philosophy:**
+  □ **Square** = Pure FFI binding, equal responsibility all sides
+  ▭ **Rectangle** = Plugin extension, more features on app side
+  
+  **Driver Pattern:** main.* executes through native binding
+  **Test Verified:** PyPolyCall → polycall.exe:8089 ✓
+end note
+
+@enduml
