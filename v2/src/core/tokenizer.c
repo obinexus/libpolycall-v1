@@ -1,49 +1,75 @@
-#include "libpolycall/core/tokenizer.h"
-#include <string.h>
+#include "polycall_tokenizer.h"
 #include <stdlib.h>
+#include <string.h>
 
-typedef struct {
-    char* buffer;
-    size_t position;
+struct PolycallTokenizer {
+    const char* input;
     size_t length;
-} tokenizer_state_t;
+    size_t position;
+    uint32_t line;
+    uint32_t column;
+    PolycallTokenArray tokens;
+};
 
-void* tokenizer_create(const char* input) {
-    if (!input) return NULL;
+PolycallTokenizer* polycall_tokenizer_create(const char* input) {
+    PolycallTokenizer* tokenizer = calloc(1, sizeof(PolycallTokenizer));
+    if (!tokenizer) return NULL;
     
-    tokenizer_state_t* state = calloc(1, sizeof(tokenizer_state_t));
-    if (state) {
-        state->length = strlen(input);
-        state->buffer = strdup(input);
-        state->position = 0;
+    tokenizer->line = 1;
+    tokenizer->column = 1;
+    tokenizer->tokens.capacity = 100;
+    tokenizer->tokens.tokens = calloc(tokenizer->tokens.capacity, sizeof(PolycallToken));
+    
+    if (input) {
+        polycall_tokenizer_set_input(tokenizer, input, strlen(input));
     }
-    return state;
+    
+    return tokenizer;
 }
 
-void tokenizer_destroy(void* tokenizer) {
+void polycall_tokenizer_destroy(PolycallTokenizer* tokenizer) {
     if (tokenizer) {
-        tokenizer_state_t* state = (tokenizer_state_t*)tokenizer;
-        free(state->buffer);
-        free(state);
+        free(tokenizer->tokens.tokens);
+        free(tokenizer);
     }
 }
 
-int tokenizer_next(void* tokenizer, char* token, size_t max_len) {
-    if (!tokenizer || !token) return -1;
+bool polycall_tokenizer_set_input(PolycallTokenizer* tokenizer, const char* input, size_t length) {
+    if (!tokenizer || !input) return false;
     
-    tokenizer_state_t* state = (tokenizer_state_t*)tokenizer;
-    if (state->position >= state->length) return 0;
+    tokenizer->input = input;
+    tokenizer->length = length;
+    tokenizer->position = 0;
+    tokenizer->line = 1;
+    tokenizer->column = 1;
+    tokenizer->tokens.count = 0;
     
-    size_t i = 0;
-    while (state->position < state->length && i < max_len - 1) {
-        char c = state->buffer[state->position++];
-        if (c == ' ' || c == '\t' || c == '\n') {
-            if (i > 0) break;
-            continue;
+    return true;
+}
+
+bool polycall_tokenizer_process(PolycallTokenizer* tokenizer, const TokenizerOperations* ops) {
+    if (!tokenizer || !tokenizer->input) return false;
+    
+    // Simple tokenization - just create EOF token for now
+    if (tokenizer->tokens.count == 0) {
+        PolycallToken eof_token = {
+            .type = TOKEN_EOF,
+            .line = tokenizer->line,
+            .column = tokenizer->column
+        };
+        
+        if (tokenizer->tokens.count < tokenizer->tokens.capacity) {
+            tokenizer->tokens.tokens[tokenizer->tokens.count++] = eof_token;
         }
-        token[i++] = c;
+        
+        if (ops && ops->on_token) {
+            ops->on_token(&eof_token, ops->user_data);
+        }
     }
-    token[i] = '\0';
     
-    return i > 0 ? 1 : 0;
+    return true;
+}
+
+const PolycallTokenArray* polycall_tokenizer_get_tokens(const PolycallTokenizer* tokenizer) {
+    return tokenizer ? &tokenizer->tokens : NULL;
 }
