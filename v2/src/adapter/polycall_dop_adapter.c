@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 /* Core types */
-#include "polycall/core/types.h"
+#include "libpolycall/core/types.h"
 
 /**
  * @file polycall_dop_adapter.c

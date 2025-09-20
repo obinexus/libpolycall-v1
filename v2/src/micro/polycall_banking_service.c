@@ -8,6 +8,7 @@
 #include <errno.h>
 #include "polycall.h"
 #include "polycall_micro.h"
+#include <stdlib.h>
 
 // Thread-safe P2P fail-safe model
 typedef struct poly_bridge {

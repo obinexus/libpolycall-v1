@@ -1,6 +1,6 @@
 #ifndef NETWORK_H
 #define NETWORK_H
-
+#include <stdbool.h>
 typedef struct NetworkEndpoint NetworkEndpoint;
  #define NET_TCP 1
    #define NET_UDP 2
