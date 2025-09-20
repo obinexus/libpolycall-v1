@@ -1,0 +1,2 @@
+[engine:junit-jupiter]/[class:org.obinexus.core.ProtocolBindingTest]/[method:testProtocolBindingInitialization()]
+[engine:junit-jupiter]/[class:org.obinexus.integration.RuntimeConnectionTest]/[method:testRuntimeConnection()]

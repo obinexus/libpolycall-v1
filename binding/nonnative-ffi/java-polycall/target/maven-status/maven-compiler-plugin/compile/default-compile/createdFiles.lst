@@ -1,0 +1,15 @@
+org/obinexus/core/ProtocolBinding.class
+org/obinexus/ffi/LibPolyCallJNI.class
+org/obinexus/cli/commands/TelemetryCommand.class
+org/obinexus/cli/consumer_core/CommandRegistry.class
+org/obinexus/core/ProtocolHandler.class
+org/obinexus/cli/Main.class
+org/obinexus/ffi/NativeBinding.class
+org/obinexus/cli/commands/TestCommand.class
+org/obinexus/core/StateManager$State.class
+org/obinexus/config/ConfigManager.class
+org/obinexus/core/StateManager$1.class
+org/obinexus/core/StateManager.class
+org/obinexus/cli/consumer_core/ExtensionManager.class
+org/obinexus/cli/commands/InfoCommand.class
+org/obinexus/core/TelemetryObserver.class
