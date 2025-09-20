@@ -1,21 +1,42 @@
-#ifndef LIBPOLYCALL_FEATURE_A_COMPONENT_1_MODULE_001_H
-#define LIBPOLYCALL_FEATURE_A_COMPONENT_1_MODULE_001_H
+#ifndef LIBPOLYCALL_FEATURE-A_MODULE-NAME-001_H
+#define LIBPOLYCALL_FEATURE-A_MODULE-NAME-001_H
+
+#include "libpolycall/core/polycall.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Module initialization
-int module_001_init(void);
+/* Module: module-name-001 in feature feature-A */
 
-// Module cleanup
-void module_001_cleanup(void);
+/* Module-specific types */
+typedef struct {
+    polycall_context_t context;
+    void* module_data;
+    uint32_t module_id;
+} module-name-001_handle_t;
 
-// Module-specific functionality
-void* module_001_get_interface(void);
+/* Module initialization */
+polycall_status_t module-name-001_init(
+    polycall_context_t ctx,
+    module-name-001_handle_t** handle
+);
+
+/* Module operations */
+polycall_status_t module-name-001_process(
+    module-name-001_handle_t* handle,
+    const void* input,
+    void* output
+);
+
+/* Module cleanup */
+void module-name-001_cleanup(module-name-001_handle_t* handle);
+
+/* Module version */
+const char* module-name-001_get_version(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* LIBPOLYCALL_FEATURE-A_MODULE-NAME-001_H */

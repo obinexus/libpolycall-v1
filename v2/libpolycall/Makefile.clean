@@ -1,0 +1,62 @@
+# OBINexus libpolycall v2 - Clean Build
+# Type-safe compilation
+
+CC = gcc
+CFLAGS = -Wall -Wextra -Werror -std=c11 -pthread -fPIC
+CFLAGS += -I. -I./include -I./include/libpolycall
+LDFLAGS = -pthread
+
+BUILD_DIR = build
+OBJ_DIR = $(BUILD_DIR)/obj
+LIB_DIR = $(BUILD_DIR)/lib
+
+# Core sources only (no duplicates, no CMake files)
+SOURCES = src/core/polycall.c \
+          src/core/tokenizer.c \
+          src/core/token.c \
+          src/core/state_machine.c \
+          src/adapter/polycall_dop_adapter.c \
+          src/socket/polycall_socket.c \
+          src/socket/network.c
+
+# Filter out non-existent files
+EXISTING_SOURCES = $(wildcard $(SOURCES))
+
+# Object files
+OBJECTS = $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(EXISTING_SOURCES))
+
+# Targets
+STATIC_LIB = $(LIB_DIR)/libpolycall.a
+SHARED_LIB = $(LIB_DIR)/libpolycall.so
+
+all: directories $(STATIC_LIB) $(SHARED_LIB)
+
+directories:
+	@mkdir -p $(OBJ_DIR)/core $(OBJ_DIR)/adapter $(OBJ_DIR)/socket
+	@mkdir -p $(LIB_DIR)
+
+$(OBJ_DIR)/%.o: src/%.c
+	@mkdir -p $(dir $@)
+	@echo "CC $<"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+$(STATIC_LIB): $(OBJECTS)
+	@echo "AR $@"
+	@ar rcs $@ $(OBJECTS)
+
+$(SHARED_LIB): $(OBJECTS)
+	@echo "LD $@"
+	@$(CC) -shared -o $@ $(OBJECTS) $(LDFLAGS)
+
+clean:
+	@rm -rf $(BUILD_DIR)
+
+verify:
+	@echo "=== Type System Verification ==="
+	@echo "Checking header consistency..."
+	@grep -h "polycall_context_t" include/libpolycall/core/polycall.h
+	@echo ""
+	@echo "Library outputs:"
+	@ls -la $(LIB_DIR)/ 2>/dev/null || echo "Not built yet"
+
+.PHONY: all clean directories verify

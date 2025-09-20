@@ -1,11 +1,12 @@
-#include "polycall.h"
+#include "libpolycall/core/polycall.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#define POLYCALL_VERSION "1.0.0"
+
+#define POLYCALL_VERSION "2.0.0"
 #define MAX_ERROR_LENGTH 256
 
-/* Internal context structure */
+/* Internal context structure - hidden from API users */
 struct polycall_context {
     char last_error[MAX_ERROR_LENGTH];
     void* user_data;
@@ -29,27 +30,25 @@ polycall_status_t polycall_init_with_config(
     const polycall_config_t* config
 ) {
     if (!ctx) {
-        // Use the error function
-        set_error(NULL, "Invalid context pointer");
         return POLYCALL_ERROR_INVALID_PARAMETERS;
     }
 
     /* Allocate context */
-    struct polycall_context* new_ctx = malloc(sizeof(struct polycall_context));
+    struct polycall_context* new_ctx = calloc(1, sizeof(struct polycall_context));
     if (!new_ctx) {
         return POLYCALL_ERROR_OUT_OF_MEMORY;
     }
 
-    /* Initialize context with defaults */
-    memset(new_ctx, 0, sizeof(struct polycall_context));
+    /* Initialize with defaults */
     new_ctx->memory_pool_size = 1024 * 1024; /* 1MB default */
     new_ctx->flags = 0;
 
     /* Apply configuration if provided */
     if (config) {
         new_ctx->flags = config->flags;
-        new_ctx->memory_pool_size = config->memory_pool_size > 0 ? 
-                                  config->memory_pool_size : new_ctx->memory_pool_size;
+        if (config->memory_pool_size > 0) {
+            new_ctx->memory_pool_size = config->memory_pool_size;
+        }
         new_ctx->user_data = config->user_data;
     }
 
@@ -62,8 +61,7 @@ polycall_status_t polycall_init_with_config(
 }
 
 void polycall_cleanup(polycall_context_t ctx) {
-    if (ctx) {
-        /* Add any cleanup of internal resources here */
+    if (ctx && ctx->is_initialized) {
         ctx->is_initialized = false;
         free(ctx);
     }
