@@ -1,23 +1,25 @@
 # OBINexus libpolycall v2 - micro feature
-# Component-based build configuration
+# Builds both micro.so and micro.a
 
-# Collect all sources in this feature
-file(GLOB_RECURSE micro_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
-)
-
-# Remove CMake artifacts
+file(GLOB micro_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
 list(FILTER micro_SOURCES EXCLUDE REGEX ".*CMake.*")
 
-# Export to parent
-set(micro_SOURCES ${micro_SOURCES} PARENT_SCOPE)
-
-# Feature library (optional - for testing individual features)
-if(BUILD_FEATURE_LIBS)
-    add_library(polycall_micro OBJECT ${micro_SOURCES})
-    target_compile_definitions(polycall_micro PRIVATE
-        POLYCALL_FEATURE_MICRO=1
+if(micro_SOURCES)
+    # Static library: micro.a
+    add_library(micro_static STATIC ${micro_SOURCES})
+    set_target_properties(micro_static PROPERTIES
+        OUTPUT_NAME "micro"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     )
+    
+    # Shared library: micro.so
+    add_library(micro_shared SHARED ${micro_SOURCES})
+    set_target_properties(micro_shared PROPERTIES
+        OUTPUT_NAME "micro"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    )
+    
+    # Export sources to parent
+    set(micro_SOURCES ${micro_SOURCES} PARENT_SCOPE)
+    message(STATUS "Micro module: ${micro_SOURCES}")
 endif()
-
-message(STATUS "Feature micro: ${micro_SOURCES}")
