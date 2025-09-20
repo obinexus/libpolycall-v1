@@ -1,50 +1,32 @@
-#ifndef LIBPOLYCALL_CORE_POLYCALL_H
-#define LIBPOLYCALL_CORE_POLYCALL_H
+#ifndef POLYCALL_H
+#define POLYCALL_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include <pthread.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/* Forward declaration for opaque pointer */
-struct polycall_context;
-
-/* Opaque context type - this is a POINTER */
-typedef struct polycall_context* polycall_context_t;
-
-/* Status codes */
-typedef enum {
-    POLYCALL_SUCCESS = 0,
-    POLYCALL_ERROR_INVALID_PARAMETERS = -1,
-    POLYCALL_ERROR_OUT_OF_MEMORY = -2,
-    POLYCALL_ERROR_NOT_INITIALIZED = -3,
-    POLYCALL_ERROR_ALREADY_INITIALIZED = -4,
-    POLYCALL_ERROR_INVALID_STATE = -5,
-    POLYCALL_ERROR_TIMEOUT = -6,
-    POLYCALL_ERROR_UNKNOWN = -99
-} polycall_status_t;
-
-/* Configuration structure */
 typedef struct {
-    unsigned int flags;
-    size_t memory_pool_size;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int state;
+    int thread_count;
     void* user_data;
-} polycall_config_t;
+} polycall_context_t;
 
-/* Core API functions */
-polycall_status_t polycall_init_with_config(
-    polycall_context_t* ctx, 
-    const polycall_config_t* config
-);
+// Core functions
+int polycall_init(polycall_context_t* ctx);
+int polycall_process(polycall_context_t* ctx, int value);
+int polycall_wait(polycall_context_t* ctx, int target_state);
+int polycall_cleanup(polycall_context_t* ctx);
 
-void polycall_cleanup(polycall_context_t ctx);
-const char* polycall_get_version(void);
-const char* polycall_get_last_error(polycall_context_t ctx);
+// State machine
+typedef enum {
+    STATE_INIT = 0,
+    STATE_READY,
+    STATE_PROCESSING,
+    STATE_COMPLETE,
+    STATE_ERROR
+} polycall_state_t;
 
-#ifdef __cplusplus
-}
-#endif
+const char* polycall_state_name(polycall_state_t state);
+int polycall_transition(polycall_state_t* current, polycall_state_t next);
 
-#endif /* LIBPOLYCALL_CORE_POLYCALL_H */
+#endif // POLYCALL_H
