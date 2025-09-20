@@ -1,3 +1,15 @@
+#!/bin/bash
+# Fix CMakeLists.txt syntax errors in OBINexus v2
+
+cd ~/obinexus/workspace/libpolycall/v2
+
+echo "=== Fixing CMakeLists.txt Syntax Errors ==="
+
+# Backup current CMakeLists.txt
+cp CMakeLists.txt CMakeLists.txt.backup
+
+# Create corrected CMakeLists.txt
+cat > CMakeLists.txt << 'EOF'
 # OBINexus libpolycall v2 - Root Build Configuration
 cmake_minimum_required(VERSION 3.10)
 project(libpolycall VERSION 2.0.0 LANGUAGES C)
@@ -208,3 +220,35 @@ if(HOTWIRE_SOURCES)
     message(STATUS "    - hotwire: ${HOTWIRE_COUNT} files")
 endif()
 message(STATUS "=====================================")
+EOF
+
+echo "✓ CMakeLists.txt fixed"
+
+# Now rebuild
+echo ""
+echo "=== Testing fixed configuration ==="
+rm -rf build
+mkdir build
+cd build
+
+cmake .. -DBUILD_MODULES=ON
+
+echo ""
+echo "=== Build should now work. Run: ==="
+echo "  cd build"
+echo "  make -j$(nproc)"
+echo ""
+echo "This will create:"
+echo "  build/lib/libpolycall.a       - Main static library"
+echo "  build/lib/libpolycall.so      - Main shared library"
+echo "  build/lib/micro.a              - Micro module static"
+echo "  build/lib/micro.so             - Micro module shared"
+echo "  build/lib/adapter.a            - Adapter module static"
+echo "  build/lib/adapter.so           - Adapter module shared"
+echo "  build/lib/socket.a             - Socket module static"
+echo "  build/lib/socket.so            - Socket module shared"
+echo "  build/lib/nlm.a                - NLM module static"
+echo "  build/lib/nlm.so               - NLM module shared"
+echo "  build/lib/hotwire.a            - Hotwire module static"
+echo "  build/lib/hotwire.so           - Hotwire module shared"
+echo "  build/bin/polycall_cli         - CLI executable"
