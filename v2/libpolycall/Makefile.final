@@ -1,0 +1,96 @@
+# OBINexus libpolycall v2 - Final Build
+CC = gcc
+AR = ar
+CFLAGS = -Wall -Wextra -std=c11 -pthread -fPIC
+CFLAGS += -I. -I./include -I./include/libpolycall
+LDFLAGS = -pthread
+ARFLAGS = rcs
+
+BUILD_DIR = build
+OBJ_DIR = $(BUILD_DIR)/obj
+LIB_DIR = $(BUILD_DIR)/lib
+
+# Source files
+SOURCES = src/core/polycall.c \
+          src/core/tokenizer.c \
+          src/core/token.c \
+          src/core/state_machine.c
+
+# Add more sources if they exist
+OPTIONAL_SOURCES = src/adapter/polycall_dop_adapter.c \
+                   src/socket/polycall_socket.c \
+                   src/socket/network.c
+
+# Check which files actually exist
+EXISTING_SOURCES = $(wildcard $(SOURCES) $(OPTIONAL_SOURCES))
+
+# Object files
+OBJECTS = $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(EXISTING_SOURCES))
+
+# Output libraries
+STATIC_LIB = $(LIB_DIR)/libpolycall.a
+SHARED_LIB = $(LIB_DIR)/libpolycall.so
+
+.PHONY: all clean directories verify test
+
+all: directories $(STATIC_LIB) $(SHARED_LIB) verify
+
+directories:
+	@mkdir -p $(OBJ_DIR)/core $(OBJ_DIR)/adapter $(OBJ_DIR)/socket
+	@mkdir -p $(LIB_DIR)
+
+# Compile source to object files
+$(OBJ_DIR)/%.o: src/%.c
+	@mkdir -p $(dir $@)
+	@echo "CC  $<"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+# Build static library
+$(STATIC_LIB): $(OBJECTS)
+	@echo "AR  $@"
+	@$(AR) $(ARFLAGS) $@ $(OBJECTS)
+	@echo "✓ Built static library: $(STATIC_LIB)"
+
+# Build shared library
+$(SHARED_LIB): $(OBJECTS)
+	@echo "LD  $@"
+	@$(CC) -shared -o $@ $(OBJECTS) $(LDFLAGS)
+	@echo "✓ Built shared library: $(SHARED_LIB)"
+
+clean:
+	@echo "Cleaning..."
+	@rm -rf $(BUILD_DIR)
+
+verify:
+	@echo ""
+	@echo "=== Build Verification ==="
+	@echo "Objects built: $(words $(OBJECTS))"
+	@ls -lh $(OBJECTS) 2>/dev/null | tail -5
+	@echo ""
+	@echo "Libraries:"
+	@ls -lh $(LIB_DIR)/*.{a,so} 2>/dev/null || true
+	@echo ""
+	@file $(STATIC_LIB) $(SHARED_LIB) 2>/dev/null || true
+	@echo ""
+	@nm -D $(SHARED_LIB) 2>/dev/null | grep polycall | head -5 || true
+
+test: all
+	@echo "Running basic library test..."
+	@echo '#include <stdio.h>' > /tmp/test_polycall.c
+	@echo '#include "libpolycall/core/polycall.h"' >> /tmp/test_polycall.c
+	@echo 'int main() {' >> /tmp/test_polycall.c
+	@echo '    polycall_context_t ctx;' >> /tmp/test_polycall.c
+	@echo '    polycall_config_t config = {0};' >> /tmp/test_polycall.c
+	@echo '    polycall_status_t status = polycall_init_with_config(&ctx, &config);' >> /tmp/test_polycall.c
+	@echo '    if (status == POLYCALL_SUCCESS) {' >> /tmp/test_polycall.c
+	@echo '        printf("✓ Library test passed: %s\\n", polycall_get_version());' >> /tmp/test_polycall.c
+	@echo '        polycall_cleanup(ctx);' >> /tmp/test_polycall.c
+	@echo '        return 0;' >> /tmp/test_polycall.c
+	@echo '    }' >> /tmp/test_polycall.c
+	@echo '    return 1;' >> /tmp/test_polycall.c
+	@echo '}' >> /tmp/test_polycall.c
+	@$(CC) -o /tmp/test_polycall /tmp/test_polycall.c -I. -L$(LIB_DIR) -lpolycall
+	@LD_LIBRARY_PATH=$(LIB_DIR) /tmp/test_polycall
+
+.SUFFIXES:
+.SUFFIXES: .c .o

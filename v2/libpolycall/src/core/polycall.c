@@ -54,14 +54,18 @@ polycall_status_t polycall_init_with_config(
 
     /* Mark as initialized */
     new_ctx->is_initialized = true;
-    new_ctx->last_error[0] = '\0';
+    set_error(new_ctx, NULL); /* Clear any errors - NOW USING set_error */
 
     *ctx = new_ctx;
     return POLYCALL_SUCCESS;
 }
 
 void polycall_cleanup(polycall_context_t ctx) {
-    if (ctx && ctx->is_initialized) {
+    if (ctx) {
+        if (!ctx->is_initialized) {
+            set_error(ctx, "Context not initialized"); /* Using set_error */
+            return;
+        }
         ctx->is_initialized = false;
         free(ctx);
     }
@@ -75,5 +79,5 @@ const char* polycall_get_last_error(polycall_context_t ctx) {
     if (!ctx) {
         return "Invalid context";
     }
-    return ctx->last_error;
+    return ctx->last_error[0] ? ctx->last_error : "No error";
 }
