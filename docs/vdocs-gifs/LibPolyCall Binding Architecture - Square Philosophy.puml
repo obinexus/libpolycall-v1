@@ -1,0 +1,128 @@
+@startuml LibPolyCall Binding Architecture - Square Philosophy
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam rectangleBorderColor #333333
+skinparam rectangleBackgroundColor #E8F4FD
+skinparam componentBorderColor #0066CC
+skinparam componentBackgroundColor #CCE5FF
+skinparam packageBorderColor #666666
+skinparam arrowColor #0066CC
+skinparam arrowThickness 2
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam titleFontSize 18
+skinparam titleFontStyle bold
+
+title LibPolyCall Polyglot Binding Architecture\n"All Squares Are Bindings - Equal Sides Are Pure FFI"
+
+' Core Protocol Layer
+package "Core Protocol Engine" <<Database>> #FFEEEE {
+  component "libpolycall.a\n(Static Library)" as static #FFE6E6
+  component "libpolycall.so\n(Shared Object)" as shared #FFE6E6
+  component "polycall.exe\n(Runtime Engine)" as runtime #FFCCCC
+  
+  static -right-> shared : compile
+  shared -right-> runtime : link
+}
+
+' Square Bindings (Equal Sides = Pure FFI)
+package "Square Bindings (Native FFI)" <<Rectangle>> #E6F3FF {
+  component "pypolycall.so\n[Python FFI]" as py <<square>> #B3D9FF
+  component "jpolycall.jar\n[JNI Bridge]" as java <<square>> #B3D9FF
+  component "cblpolycall.a\n[COBOL FFI]" as cobol <<square>> #B3D9FF
+  component "node_polycall.node\n[N-API]" as node <<square>> #B3D9FF
+  component "gopolycall.so\n[CGO FFI]" as go <<square>> #B3D9FF
+  component "rustpolycall.rlib\n[Rust FFI]" as rust <<square>> #B3D9FF
+}
+
+' Rectangle Plugins (Unequal Sides = Extended Features)
+package "Rectangle Plugins (Extended)" <<Rectangle>> #E6FFE6 {
+  component "django_polycall\n[Web Framework]" as django <<rectangle>> #B3FFB3
+  component "spring_polycall\n[Enterprise]" as spring <<rectangle>> #B3FFB3
+  component "express_polycall\n[REST API]" as express <<rectangle>> #B3FFB3
+  component "flask_polycall\n[Microservice]" as flask <<rectangle>> #B3FFB3
+  component "rails_polycall\n[MVC]" as rails <<rectangle>> #B3FFB3
+}
+
+' Driver Execution Layer
+package "Driver Execution (main.*)" <<Folder>> #FFF9E6 {
+  file "main.py" as mainpy #FFFFCC
+  file "Main.java" as mainjava #FFFFCC
+  file "main.cbl" as maincobol #FFFFCC
+  file "main.js" as mainjs #FFFFCC
+  file "main.go" as maingo #FFFFCC
+  file "main.rs" as mainrs #FFFFCC
+}
+
+' Polyglot Interface (Center Hub)
+cloud "Polyglot Protocol Interface" as polyglot #FFE6FF {
+  usecase "Type Bridge" as bridge
+  usecase "State Machine" as state
+  usecase "Zero-Trust" as trust
+  usecase "Telemetry" as telemetry
+}
+
+' Connections - FFI Bindings to Core
+runtime --> polyglot : "Protocol\nTranslation"
+polyglot --> py : FFI
+polyglot --> java : FFI
+polyglot --> cobol : FFI
+polyglot --> node : FFI
+polyglot --> go : FFI
+polyglot --> rust : FFI
+
+' Extended Plugins connect through base bindings
+py --> django : extend
+java --> spring : extend
+node --> express : extend
+py --> flask : extend
+
+' Drivers connect to bindings
+mainpy ..> py : import
+mainjava ..> java : import
+maincobol ..> cobol : CALL
+mainjs ..> node : require
+maingo ..> go : import
+mainrs ..> rust : use
+
+' Notes explaining the philosophy
+note top of py
+  **Square Binding Properties:**
+  • Equal sides = Pure FFI
+  • No business logic
+  • Protocol translation only
+  • Stateless operation
+  • Type-safe bridging
+end note
+
+note bottom of django
+  **Rectangle Plugin Properties:**
+  • Unequal sides = Extended features
+  • Framework integration
+  • Application-specific
+  • Built on square bindings
+  • Add convenience layers
+end note
+
+note right of runtime
+  **Execution Flow:**
+  1. main.* imports binding
+  2. Binding translates to FFI
+  3. FFI calls polycall.exe
+  4. Runtime executes logic
+  5. Results flow back
+end note
+
+' Legend
+legend bottom center
+  **LibPolyCall Binding Philosophy**
+  | Symbol | Meaning | Implementation |
+  | Square (□) | Native FFI Binding | Direct protocol translation |
+  | Rectangle (▭) | Extended Plugin | Application framework integration |
+  | main.* | Driver Program | User's application entry point |
+  | .so/.a/.dll | Compiled Libraries | Platform-specific binaries |
+  
+  **OBINexus Polyglot Law:** "All squares are bindings with equal sides representing pure FFI"
+endlegend
+
+@enduml
