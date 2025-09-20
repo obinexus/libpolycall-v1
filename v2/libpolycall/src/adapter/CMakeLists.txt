@@ -1,25 +1,23 @@
-cmake_minimum_required(VERSION 3.10)
-project(libpolycall_adapter)
+# OBINexus libpolycall v2 - adapter feature
+# Component-based build configuration
 
-set(ADAPTER_SOURCES
-    polycall_dop_adapter.c
-    polycall_dop_adapter_invoke.c
-    polycall_dop_adapter_lifecycle.c
-    polycall_dop_adapter_memory.c
-    polycall_dop_adapter_security.c
-    polycall_dop_adapter_utils.c
-    polycall_dop_bridge_registry.c
+# Collect all sources in this feature
+file(GLOB_RECURSE adapter_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
 )
 
-add_library(polycall_adapter_static STATIC ${ADAPTER_SOURCES})
-target_include_directories(polycall_adapter_static 
-    PUBLIC ${CMAKE_SOURCE_DIR}/include
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/internal
-)
+# Remove CMake artifacts
+list(FILTER adapter_SOURCES EXCLUDE REGEX ".*CMake.*")
 
-add_library(polycall_adapter_shared SHARED ${ADAPTER_SOURCES})
-set_target_properties(polycall_adapter_shared PROPERTIES
-    OUTPUT_NAME polycall_adapter
-    VERSION 2.0.0
-    SOVERSION 2
-)
+# Export to parent
+set(adapter_SOURCES ${adapter_SOURCES} PARENT_SCOPE)
+
+# Feature library (optional - for testing individual features)
+if(BUILD_FEATURE_LIBS)
+    add_library(polycall_adapter OBJECT ${adapter_SOURCES})
+    target_compile_definitions(polycall_adapter PRIVATE
+        POLYCALL_FEATURE_ADAPTER=1
+    )
+endif()
+
+message(STATUS "Feature adapter: ${adapter_SOURCES}")

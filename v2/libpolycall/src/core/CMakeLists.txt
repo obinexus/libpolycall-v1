@@ -1,32 +1,23 @@
-cmake_minimum_required(VERSION 3.10)
-project(libpolycall_core)
+# OBINexus libpolycall v2 - core feature
+# Component-based build configuration
 
-set(CORE_SOURCES
-    polycall.c
-    token.c
-    tokenizer.c
-    context.c
-    parser.c
-    state_machine.c
+# Collect all sources in this feature
+file(GLOB_RECURSE core_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
 )
 
-# Build static library
-add_library(polycall_core_static STATIC ${CORE_SOURCES})
-target_include_directories(polycall_core_static 
-    PUBLIC ${CMAKE_SOURCE_DIR}/include
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/internal
-)
+# Remove CMake artifacts
+list(FILTER core_SOURCES EXCLUDE REGEX ".*CMake.*")
 
-# Build shared library
-add_library(polycall_core_shared SHARED ${CORE_SOURCES})
-set_target_properties(polycall_core_shared PROPERTIES
-    OUTPUT_NAME polycall_core
-    VERSION 2.0.0
-    SOVERSION 2
-)
+# Export to parent
+set(core_SOURCES ${core_SOURCES} PARENT_SCOPE)
 
-# Install targets
-install(TARGETS polycall_core_static polycall_core_shared
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
+# Feature library (optional - for testing individual features)
+if(BUILD_FEATURE_LIBS)
+    add_library(polycall_core OBJECT ${core_SOURCES})
+    target_compile_definitions(polycall_core PRIVATE
+        POLYCALL_FEATURE_CORE=1
+    )
+endif()
+
+message(STATUS "Feature core: ${core_SOURCES}")

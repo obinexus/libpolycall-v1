@@ -1,21 +1,23 @@
-# Feature: stream
-# OBINexus libpolycall v2 - stream module
+# OBINexus libpolycall v2 - stream feature
+# Component-based build configuration
 
-# Collect sources for stream
-file(GLOB stream_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
-file(GLOB stream_HEADERS "${CMAKE_SOURCE_DIR}/include/libpolycall/stream/*.h")
+# Collect all sources in this feature
+file(GLOB_RECURSE stream_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+)
 
-# Export to parent scope
+# Remove CMake artifacts
+list(FILTER stream_SOURCES EXCLUDE REGEX ".*CMake.*")
+
+# Export to parent
 set(stream_SOURCES ${stream_SOURCES} PARENT_SCOPE)
-set(stream_HEADERS ${stream_HEADERS} PARENT_SCOPE)
 
-# Feature-specific definitions
-if(stream_SOURCES)
-    foreach(SOURCE ${stream_SOURCES})
-        set_source_files_properties(${SOURCE} PROPERTIES
-            COMPILE_DEFINITIONS "POLYCALL_FEATURE_STREAM=1"
-        )
-    endforeach()
+# Feature library (optional - for testing individual features)
+if(BUILD_FEATURE_LIBS)
+    add_library(polycall_stream OBJECT ${stream_SOURCES})
+    target_compile_definitions(polycall_stream PRIVATE
+        POLYCALL_FEATURE_STREAM=1
+    )
 endif()
 
 message(STATUS "Feature stream: ${stream_SOURCES}")

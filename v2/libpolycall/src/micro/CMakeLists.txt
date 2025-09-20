@@ -1,21 +1,23 @@
-# Feature: micro
-# OBINexus libpolycall v2 - micro module
+# OBINexus libpolycall v2 - micro feature
+# Component-based build configuration
 
-# Collect sources for micro
-file(GLOB micro_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
-file(GLOB micro_HEADERS "${CMAKE_SOURCE_DIR}/include/libpolycall/micro/*.h")
+# Collect all sources in this feature
+file(GLOB_RECURSE micro_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+)
 
-# Export to parent scope
+# Remove CMake artifacts
+list(FILTER micro_SOURCES EXCLUDE REGEX ".*CMake.*")
+
+# Export to parent
 set(micro_SOURCES ${micro_SOURCES} PARENT_SCOPE)
-set(micro_HEADERS ${micro_HEADERS} PARENT_SCOPE)
 
-# Feature-specific definitions
-if(micro_SOURCES)
-    foreach(SOURCE ${micro_SOURCES})
-        set_source_files_properties(${SOURCE} PROPERTIES
-            COMPILE_DEFINITIONS "POLYCALL_FEATURE_MICRO=1"
-        )
-    endforeach()
+# Feature library (optional - for testing individual features)
+if(BUILD_FEATURE_LIBS)
+    add_library(polycall_micro OBJECT ${micro_SOURCES})
+    target_compile_definitions(polycall_micro PRIVATE
+        POLYCALL_FEATURE_MICRO=1
+    )
 endif()
 
 message(STATUS "Feature micro: ${micro_SOURCES}")

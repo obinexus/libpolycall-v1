@@ -1,21 +1,23 @@
-# Feature: nlm
-# OBINexus libpolycall v2 - nlm module
+# OBINexus libpolycall v2 - nlm feature
+# Component-based build configuration
 
-# Collect sources for nlm
-file(GLOB nlm_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
-file(GLOB nlm_HEADERS "${CMAKE_SOURCE_DIR}/include/libpolycall/nlm/*.h")
+# Collect all sources in this feature
+file(GLOB_RECURSE nlm_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+)
 
-# Export to parent scope
+# Remove CMake artifacts
+list(FILTER nlm_SOURCES EXCLUDE REGEX ".*CMake.*")
+
+# Export to parent
 set(nlm_SOURCES ${nlm_SOURCES} PARENT_SCOPE)
-set(nlm_HEADERS ${nlm_HEADERS} PARENT_SCOPE)
 
-# Feature-specific definitions
-if(nlm_SOURCES)
-    foreach(SOURCE ${nlm_SOURCES})
-        set_source_files_properties(${SOURCE} PROPERTIES
-            COMPILE_DEFINITIONS "POLYCALL_FEATURE_NLM=1"
-        )
-    endforeach()
+# Feature library (optional - for testing individual features)
+if(BUILD_FEATURE_LIBS)
+    add_library(polycall_nlm OBJECT ${nlm_SOURCES})
+    target_compile_definitions(polycall_nlm PRIVATE
+        POLYCALL_FEATURE_NLM=1
+    )
 endif()
 
 message(STATUS "Feature nlm: ${nlm_SOURCES}")
