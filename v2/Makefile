@@ -163,6 +163,34 @@ test: all
 	done
 	@echo "✓ All tests passed"
 
+# Module-specific Makefile template
+MODULE_PATTERN = feature-*/component-subset-*/module-name-*
+
+# Build all modules matching pattern
+modules: $(MODULE_PATTERN)
+	@for module in $$(find modules -name "*.c" | grep -E "$(MODULE_PATTERN)"); do \
+		$(MAKE) -f scripts/module.mk MODULE=$$module build; \
+	done
+
+# Build specific module
+module-%:
+	@namespace=$$(echo $* | sed 's/-/\//g'); \
+	$(MAKE) -f scripts/module.mk MODULE=modules/$$namespace build
+
+# Generate static library
+%.a: %.o
+	$(AR) rcs $@ $^
+
+# Generate shared library
+%.so: %.o
+	$(CC) -shared -o $@ $^ $(LDFLAGS)
+
+# Platform-specific
+ifeq ($(OS),Windows_NT)
+%.dll: %.o
+	$(CC) -shared -o $@ $^ -Wl,--out-implib,$@.a $(LDFLAGS)
+endif
+
 # Verify structure
 verify:
 	@echo "=== libpolycall v2 Structure Verification ==="
