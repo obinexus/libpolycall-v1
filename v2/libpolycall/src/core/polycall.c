@@ -1,7 +1,7 @@
 #include "polycall.h"
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdbool.h>
 #define POLYCALL_VERSION "1.0.0"
 #define MAX_ERROR_LENGTH 256
 
