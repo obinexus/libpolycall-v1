@@ -234,3 +234,37 @@ help:
 
 .PHONY: all directories $(FEATURES) link-all install clean test verify help
 .PHONY: linux macos windows
+
+# ============================================
+# Namespace System Rules
+# ============================================
+
+namespace: directories
+	@echo "Building namespace resolver..."
+	@$(CC) $(CFLAGS) -c namespace/src/hash_table.c -o $(OBJ_DIR)/hash_table.o
+	@$(AR) rcs $(STATIC_DIR)/libpolycall_namespace.a $(OBJ_DIR)/hash_table.o
+	@$(CC) -shared -o $(SHARED_DIR)/libpolycall_namespace.so $(OBJ_DIR)/hash_table.o
+	@echo "✓ Namespace system built"
+
+# Build modules matching pattern
+modules-pattern-%:
+	@pattern=$$(echo $* | sed 's/-/\//g'); \
+	for module in $$(find modules -path "*$$pattern*" -name "*.c"); do \
+		obj=$$(echo $$module | sed 's/\.c/.o/'); \
+		$(CC) $(CFLAGS) $(INCLUDES) -c $$module -o $$obj; \
+		echo "✓ Built $$module"; \
+	done
+
+# Build all modules
+modules-all:
+	@find modules -name "*.c" | while read module; do \
+		obj=$$(echo $$module | sed 's/\.c/.o/'); \
+		$(CC) $(CFLAGS) $(INCLUDES) -c $$module -o $$obj; \
+		base=$$(basename $$module .c); \
+		dir=$$(dirname $$module); \
+		$(AR) rcs $$dir/$$base.a $$obj; \
+		$(CC) -shared -o $$dir/$$base.so $$obj $(LDFLAGS); \
+		echo "✓ Built $$base (.a/.so)"; \
+	done
+
+.PHONY: namespace modules-pattern-% modules-all

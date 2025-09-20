@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module_registry xmlns="http://obinexus.com/schema/modules" version="2.0.0">
+    <!-- Feature A: Core functionality -->
+    <feature id="A" name="core" category="essential">
+        <component-subset id="1" name="foundation">
+            <module id="001" name="context">
+                <namespace>feature-A/component-subset-1/module-name-001</namespace>
+                <library>
+                    <static>libpolycall_core_context.a</static>
+                    <shared>libpolycall_core_context.so</shared>
+                    <darwin>libpolycall_core_context.dylib</darwin>
+                    <windows>polycall_core_context.dll</windows>
+                </library>
+                <dependencies/>
+            </module>
+            <module id="002" name="memory">
+                <namespace>feature-A/component-subset-1/module-name-002</namespace>
+                <library>
+                    <static>libpolycall_core_memory.a</static>
+                    <shared>libpolycall_core_memory.so</shared>
+                </library>
+                <dependencies>
+                    <dependency>feature-A/component-subset-1/module-name-001</dependency>
+                </dependencies>
+            </module>
+        </component-subset>
+    </feature>
+    
+    <!-- Feature B: Adapter system -->
+    <feature id="B" name="adapter" category="binding">
+        <component-subset id="1" name="ffi">
+            <module id="003" name="ffi_bridge">
+                <namespace>feature-B/component-subset-1/module-name-003</namespace>
+                <library>
+                    <static>libpolycall_adapter_ffi.a</static>
+                    <shared>libpolycall_adapter_ffi.so</shared>
+                </library>
+                <dependencies>
+                    <dependency>feature-A/component-subset-1/module-name-001</dependency>
+                </dependencies>
+            </module>
+        </component-subset>
+    </feature>
+    
+    <!-- Feature H: Hotwire system -->
+    <feature id="H" name="hotwire" category="runtime">
+        <component-subset id="1" name="loader">
+            <module id="010" name="hot_loader">
+                <namespace>feature-H/component-subset-1/module-name-010</namespace>
+                <library>
+                    <static>libpolycall_hotwire_loader.a</static>
+                    <shared>libpolycall_hotwire_loader.so</shared>
+                </library>
+                <dependencies>
+                    <dependency>feature-A/component-subset-1/module-name-001</dependency>
+                    <dependency>feature-B/component-subset-1/module-name-003</dependency>
+                </dependencies>
+            </module>
+        </component-subset>
+    </feature>
+    
+    <!-- Feature N: NLM-Atlas -->
+    <feature id="N" name="nlm" category="service-discovery">
+        <component-subset id="1" name="atlas">
+            <module id="020" name="avl_huffman">
+                <namespace>feature-N/component-subset-1/module-name-020</namespace>
+                <library>
+                    <static>libpolycall_nlm_atlas.a</static>
+                    <shared>libpolycall_nlm_atlas.so</shared>
+                </library>
+                <dependencies>
+                    <dependency>feature-A/component-subset-1/module-name-001</dependency>
+                </dependencies>
+            </module>
+        </component-subset>
+    </feature>
+</module_registry>
