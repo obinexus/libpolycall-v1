@@ -1,0 +1,107 @@
+# OBINexus libpolycall v2 - Direct Build (no CMake)
+# Clean build without duplicates
+
+CC = gcc
+AR = ar
+CFLAGS = -Wall -Wextra -std=c11 -pthread -fPIC -I./include -I./include/libpolycall
+LDFLAGS = -pthread
+ARFLAGS = rcs
+
+# Build directories
+BUILD_DIR = build
+OBJ_DIR = $(BUILD_DIR)/obj
+LIB_DIR = $(BUILD_DIR)/lib
+BIN_DIR = $(BUILD_DIR)/bin
+
+# Library outputs
+STATIC_LIB = $(LIB_DIR)/libpolycall.a
+SHARED_LIB = $(LIB_DIR)/libpolycall.so
+
+# CLI executable
+CLI_EXEC = $(BIN_DIR)/polycall
+
+# Source files (excluding duplicates and CMake artifacts)
+CORE_SOURCES = $(shell find src/core -name "*.c" -type f 2>/dev/null | \
+    grep -v CMake | \
+    grep -v main.c | \
+    grep -v nlm_altas | \
+    sort -u)
+
+ADAPTER_SOURCES = $(shell find src/adapter -name "*.c" -type f 2>/dev/null | grep -v CMake)
+SOCKET_SOURCES = $(shell find src/socket -name "*.c" -type f 2>/dev/null | grep -v CMake)
+HOTWIRE_SOURCES = $(shell find src/hotwire -name "*.c" -type f 2>/dev/null | grep -v CMake)
+MICRO_SOURCES = $(shell find src/micro -name "*.c" -type f 2>/dev/null | grep -v CMake)
+NLM_SOURCES = $(shell find src/nlm -name "*.c" -type f 2>/dev/null | grep -v CMake)
+STREAM_SOURCES = $(shell find src/stream -name "*.c" -type f 2>/dev/null | grep -v CMake)
+ZERO_SOURCES = $(shell find src/zero -name "*.c" -type f 2>/dev/null | grep -v CMake)
+
+# CLI sources
+CLI_SOURCES = src/cli/polycall_cli.c src/cli/monitor/pid_manager.c
+
+# All library sources
+LIB_SOURCES = $(CORE_SOURCES) $(ADAPTER_SOURCES) $(SOCKET_SOURCES) \
+              $(HOTWIRE_SOURCES) $(MICRO_SOURCES) $(NLM_SOURCES) \
+              $(STREAM_SOURCES) $(ZERO_SOURCES)
+
+# Object files
+LIB_OBJECTS = $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(LIB_SOURCES))
+CLI_OBJECTS = $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(CLI_SOURCES))
+
+# Default target
+all: directories $(STATIC_LIB) $(SHARED_LIB) $(CLI_EXEC)
+
+# Create directories
+directories:
+	@mkdir -p $(OBJ_DIR)/core $(OBJ_DIR)/adapter $(OBJ_DIR)/socket
+	@mkdir -p $(OBJ_DIR)/hotwire $(OBJ_DIR)/micro $(OBJ_DIR)/nlm
+	@mkdir -p $(OBJ_DIR)/stream $(OBJ_DIR)/zero $(OBJ_DIR)/cli/monitor
+	@mkdir -p $(LIB_DIR) $(BIN_DIR)
+
+# Compile library objects
+$(OBJ_DIR)/%.o: src/%.c
+	@mkdir -p $(dir $@)
+	@echo "Compiling $<..."
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+# Build static library
+$(STATIC_LIB): $(LIB_OBJECTS)
+	@echo "Building static library..."
+	@$(AR) $(ARFLAGS) $@ $(LIB_OBJECTS)
+	@echo "✓ Static library created: $@"
+
+# Build shared library
+$(SHARED_LIB): $(LIB_OBJECTS)
+	@echo "Building shared library..."
+	@$(CC) -shared -o $@ $(LIB_OBJECTS) $(LDFLAGS)
+	@echo "✓ Shared library created: $@"
+
+# Build CLI executable
+$(CLI_EXEC): $(CLI_OBJECTS) $(STATIC_LIB)
+	@echo "Building CLI executable..."
+	@$(CC) $(CFLAGS) -o $@ $(CLI_OBJECTS) -L$(LIB_DIR) -lpolycall $(LDFLAGS)
+	@echo "✓ CLI executable created: $@"
+
+# Clean
+clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf $(BUILD_DIR)
+	@find . -name "*.o" -delete
+	@find . -name "CMakeC*" -delete
+
+# Verify build
+verify:
+	@echo "=== Build Verification ==="
+	@if [ -f "$(STATIC_LIB)" ]; then \
+		echo "✓ Static library: $(STATIC_LIB)"; \
+		ls -lh $(STATIC_LIB); \
+	fi
+	@if [ -f "$(SHARED_LIB)" ]; then \
+		echo "✓ Shared library: $(SHARED_LIB)"; \
+		ls -lh $(SHARED_LIB); \
+	fi
+	@if [ -f "$(CLI_EXEC)" ]; then \
+		echo "✓ CLI executable: $(CLI_EXEC)"; \
+		ls -lh $(CLI_EXEC); \
+	fi
+
+.PHONY: all clean directories verify
