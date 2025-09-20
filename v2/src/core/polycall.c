@@ -16,17 +16,19 @@ struct polycall_context {
 };
 
 /* Static helper functions */
-static void set_error(polycall_context_t ctx, const char* error) {
+void set_error(polycall_context_t* ctx, const char* error) {
     if (ctx && error) {
         strncpy(ctx->last_error, error, MAX_ERROR_LENGTH - 1);
         ctx->last_error[MAX_ERROR_LENGTH - 1] = '\0';
     }
 }
 
+
+
 /* API Implementation */
 
 polycall_status_t polycall_init_with_config(
-    polycall_context_t* ctx, 
+    polycall_context_t* ctx,
     const polycall_config_t* config
 ) {
     if (!ctx) {
