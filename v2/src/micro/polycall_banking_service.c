@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <stdbool.h>
+#include "libpolycall/core/types.h"
 // v2/src/core/micro/polycall_banking_service.c
 // Banking Microservice with NLM-Atlas Integration
 

@@ -1,3 +1,6 @@
+#include <stdbool.h>
+#include <stdio.h>
+#include "libpolycall/core/types.h"
 #include "network.h"
 #ifdef _WIN32
     #include <winsock2.h>

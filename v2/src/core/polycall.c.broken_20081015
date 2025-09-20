@@ -1,12 +1,15 @@
+/* polycall.c - OBINexus v2 Core Implementation */
+
 #include "libpolycall/core/polycall.h"
 #include "libpolycall/core/types.h"
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
+#include <stdbool.h>
 
 #define POLYCALL_VERSION "2.0.0"
 #define MAX_ERROR_LENGTH 256
 
+/* Internal context structure - opaque to API users */
 struct polycall_context {
     char last_error[MAX_ERROR_LENGTH];
     void* user_data;
@@ -16,12 +19,15 @@ struct polycall_context {
     pthread_mutex_t lock;
 };
 
+/* Static helper functions */
 static void set_error(polycall_context_t ctx, const char* error) {
     if (ctx && error) {
         strncpy(ctx->last_error, error, MAX_ERROR_LENGTH - 1);
         ctx->last_error[MAX_ERROR_LENGTH - 1] = '\0';
     }
 }
+
+/* API Implementation */
 
 polycall_status_t polycall_init_with_config(
     polycall_context_t* ctx,
@@ -31,19 +37,23 @@ polycall_status_t polycall_init_with_config(
         return POLYCALL_ERROR_INVALID_PARAMETERS;
     }
 
+    /* Allocate context */
     struct polycall_context* new_ctx = calloc(1, sizeof(struct polycall_context));
     if (!new_ctx) {
         return POLYCALL_ERROR_OUT_OF_MEMORY;
     }
 
+    /* Initialize mutex */
     if (pthread_mutex_init(&new_ctx->lock, NULL) != 0) {
         free(new_ctx);
         return POLYCALL_ERROR_UNKNOWN;
     }
 
-    new_ctx->memory_pool_size = 1024 * 1024;
+    /* Initialize with defaults */
+    new_ctx->memory_pool_size = 1024 * 1024; /* 1MB default */
     new_ctx->flags = 0;
 
+    /* Apply configuration if provided */
     if (config) {
         new_ctx->flags = config->flags;
         if (config->memory_pool_size > 0) {
@@ -52,8 +62,9 @@ polycall_status_t polycall_init_with_config(
         new_ctx->user_data = config->user_data;
     }
 
+    /* Mark as initialized */
     new_ctx->is_initialized = true;
-    set_error(new_ctx, NULL);
+    set_error(new_ctx, NULL); /* Clear any errors */
 
     *ctx = new_ctx;
     return POLYCALL_SUCCESS;
@@ -95,13 +106,17 @@ const char* polycall_get_last_error(polycall_context_t ctx) {
     return ctx->last_error[0] ? ctx->last_error : "No error";
 }
 
+/* Additional core functionality */
+
 polycall_status_t polycall_set_flag(polycall_context_t ctx, unsigned int flag) {
     if (!ctx || !ctx->is_initialized) {
         return POLYCALL_ERROR_NOT_INITIALIZED;
     }
+    
     pthread_mutex_lock(&ctx->lock);
     ctx->flags |= flag;
     pthread_mutex_unlock(&ctx->lock);
+    
     return POLYCALL_SUCCESS;
 }
 
@@ -109,9 +124,11 @@ polycall_status_t polycall_clear_flag(polycall_context_t ctx, unsigned int flag)
     if (!ctx || !ctx->is_initialized) {
         return POLYCALL_ERROR_NOT_INITIALIZED;
     }
+    
     pthread_mutex_lock(&ctx->lock);
     ctx->flags &= ~flag;
     pthread_mutex_unlock(&ctx->lock);
+    
     return POLYCALL_SUCCESS;
 }
 
@@ -130,8 +147,10 @@ polycall_status_t polycall_set_user_data(polycall_context_t ctx, void* data) {
     if (!ctx || !ctx->is_initialized) {
         return POLYCALL_ERROR_NOT_INITIALIZED;
     }
+    
     pthread_mutex_lock(&ctx->lock);
     ctx->user_data = data;
     pthread_mutex_unlock(&ctx->lock);
+    
     return POLYCALL_SUCCESS;
 }
