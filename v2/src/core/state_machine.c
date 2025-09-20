@@ -1,37 +1,37 @@
+#include "libpolycall/micro/polycall_micro.h"
 #include <stdlib.h>
-#include <string.h>
 
 typedef struct {
-    int current_state;
-    int max_states;
+    void* state;
     void* user_data;
-} state_machine_t;
+} state_machine_impl_t;
 
-void* state_machine_create(int initial_state, int max_states) {
-    state_machine_t* sm = calloc(1, sizeof(state_machine_t));
+polycall_sm_status_t polycall_sm_create_with_integrity(
+    void* user_data,
+    polycall_sm_t* sm,
+    void* integrity_check
+) {
+    if (!sm) return POLYCALL_SM_ERROR;
+    
+    state_machine_impl_t* impl = malloc(sizeof(state_machine_impl_t));
+    if (!impl) return POLYCALL_SM_ERROR;
+    
+    impl->state = malloc(256);
+    if (!impl->state) {
+        free(impl);
+        return POLYCALL_SM_ERROR;
+    }
+    
+    impl->user_data = user_data;
+    *sm = (polycall_sm_t)impl;
+    
+    return POLYCALL_SM_SUCCESS;
+}
+
+void polycall_sm_destroy(polycall_sm_t sm) {
     if (sm) {
-        sm->current_state = initial_state;
-        sm->max_states = max_states;
+        state_machine_impl_t* impl = (state_machine_impl_t*)sm;
+        if (impl->state) free(impl->state);
+        free(impl);
     }
-    return sm;
-}
-
-void state_machine_destroy(void* sm) {
-    free(sm);
-}
-
-int state_machine_transition(void* sm, int new_state) {
-    if (!sm) return -1;
-    
-    state_machine_t* machine = (state_machine_t*)sm;
-    if (new_state < 0 || new_state >= machine->max_states) {
-        return -1;
-    }
-    
-    machine->current_state = new_state;
-    return 0;
-}
-
-int state_machine_get_state(void* sm) {
-    return sm ? ((state_machine_t*)sm)->current_state : -1;
 }

@@ -1,5 +1,3 @@
-/* polycall_micro.h - OBINexus v2 Micro Service Module */
-
 #ifndef POLYCALL_MICRO_H
 #define POLYCALL_MICRO_H
 
@@ -9,12 +7,10 @@
 #include "libpolycall/core/types.h"
 #include "libpolycall/core/polycall.h"
 
-/* Micro module constants */
 #define POLYCALL_MICRO_MAX_COMMANDS 256
 #define POLYCALL_MICRO_MAX_SERVICES 32
 #define POLYCALL_MICRO_BUFFER_SIZE 4096
 
-/* Status codes for micro operations */
 typedef enum {
     POLYCALL_MICRO_SUCCESS = 0,
     POLYCALL_MICRO_ERROR_INIT = -1,
@@ -24,7 +20,6 @@ typedef enum {
     POLYCALL_MICRO_ERROR_MEMORY = -5
 } PolycallMicroStatus;
 
-/* Command structure for data-oriented operations */
 typedef struct {
     uint32_t id;
     uint32_t type;
@@ -34,14 +29,12 @@ typedef struct {
     uint8_t payload[POLYCALL_MICRO_BUFFER_SIZE];
 } PolycallCommand;
 
-/* Command array for batch processing */
 typedef struct {
     PolycallCommand commands[POLYCALL_MICRO_MAX_COMMANDS];
     uint32_t count;
     uint32_t capacity;
 } PolycallCommandArray;
 
-/* Service state for microservice isolation */
 typedef struct {
     uint32_t id;
     uint32_t state;
@@ -51,15 +44,13 @@ typedef struct {
     uint8_t data_buffer[POLYCALL_MICRO_BUFFER_SIZE];
 } PolycallServiceState;
 
-/* Service array with contiguous memory layout */
 typedef struct {
     PolycallServiceState services[POLYCALL_MICRO_MAX_SERVICES];
     uint32_t count;
-    uint32_t active_mask;  /* Bitmask for active services */
-    uint64_t last_gc;       /* Last garbage collection timestamp */
+    uint32_t active_mask;
+    uint64_t last_gc;
 } PolycallServiceArray;
 
-/* State machine types (forward declarations) */
 typedef void* polycall_sm_t;
 
 typedef enum {
@@ -67,7 +58,6 @@ typedef enum {
     POLYCALL_SM_ERROR = -1
 } polycall_sm_status_t;
 
-/* Protocol context structure */
 typedef struct {
     void* context;
     NetworkEndpoint* endpoint;
@@ -77,7 +67,6 @@ typedef struct {
     void* user_data;
 } polycall_protocol_context_t;
 
-/* Protocol configuration */
 typedef struct {
     uint32_t flags;
     size_t max_message_size;
@@ -85,7 +74,6 @@ typedef struct {
     void* user_data;
 } polycall_protocol_config_t;
 
-/* Main micro context structure */
 typedef struct {
     PolycallServiceArray service_array;
     polycall_sm_t state_machine;
@@ -94,98 +82,72 @@ typedef struct {
     uint64_t startup_time;
 } PolycallMicroContext;
 
-/* Function pointer types for functional programming style */
 typedef void (*PolycallTransform)(PolycallCommand* cmd);
 typedef bool (*PolycallPredicate)(const PolycallCommand* cmd);
 typedef void (*PolycallOperation)(PolycallServiceState* state);
 
-/* Transform chain for point-free style */
 typedef struct {
     PolycallTransform* transforms;
     uint32_t transform_count;
 } PolycallTransformChain;
 
-/* Core micro API functions */
 PolycallMicroStatus polycall_micro_init(
     PolycallMicroContext* ctx,
     const polycall_config_t* config
 );
-
 void polycall_micro_cleanup(PolycallMicroContext* ctx);
-
-/* Service management */
 PolycallMicroStatus polycall_micro_create_service(
     PolycallMicroContext* ctx,
     uint32_t service_id,
     uint32_t flags
 );
-
 PolycallMicroStatus polycall_micro_destroy_service(
     PolycallMicroContext* ctx,
     uint32_t service_id
 );
-
 PolycallMicroStatus polycall_micro_update_service_state(
     PolycallMicroContext* ctx,
     uint32_t service_id,
     uint32_t new_state
 );
-
-/* Functional programming operations */
 PolycallMicroStatus polycall_micro_transform_command(
     PolycallCommand* cmd,
     const PolycallTransformChain* chain
 );
-
 PolycallMicroStatus polycall_micro_filter_commands(
     PolycallCommandArray* commands,
     PolycallPredicate predicate
 );
-
 PolycallMicroStatus polycall_micro_process_commands(
     PolycallServiceState* service,
     PolycallOperation operation
 );
-
-/* Batch processing */
 PolycallMicroStatus polycall_micro_batch_process(
     PolycallMicroContext* ctx,
     uint32_t service_id,
     const PolycallCommandArray* commands
 );
-
-/* Memory management */
 PolycallMicroStatus polycall_micro_collect_garbage(PolycallMicroContext* ctx);
-
-/* Utility functions */
 const char* polycall_micro_status_string(PolycallMicroStatus status);
 uint32_t polycall_micro_get_active_services(const PolycallMicroContext* ctx);
-
-/* Transform chain management */
 PolycallTransformChain polycall_micro_create_transform_chain(
     PolycallTransform* transforms,
     uint32_t count
 );
-
 void polycall_micro_destroy_transform_chain(PolycallTransformChain* chain);
 
-/* State machine stub functions (implemented elsewhere) */
 polycall_sm_status_t polycall_sm_create_with_integrity(
     void* user_data,
     polycall_sm_t* sm,
     void* integrity_check
 );
-
 void polycall_sm_destroy(polycall_sm_t sm);
-
-/* Protocol stub functions (implemented elsewhere) */
 bool polycall_protocol_init(
     polycall_protocol_context_t* ctx,
     void* user_data,
     NetworkEndpoint* endpoint,
     const polycall_protocol_config_t* config
 );
-
 void polycall_protocol_cleanup(polycall_protocol_context_t* ctx);
 
 #endif /* POLYCALL_MICRO_H */
