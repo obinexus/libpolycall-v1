@@ -1,67 +1,71 @@
-# OBINexus libpolycall v2 - Main Makefile
-# Orchestrates CMake build process
+# OBINexus libpolycall v2 - Master Makefile
+# Builds libraries into build/lib/, objects into build/obj/
 
 BUILD_DIR = build
-CMAKE_FLAGS = -DCMAKE_BUILD_TYPE=Release
+CMAKE_FLAGS = -DCMAKE_BUILD_TYPE=Release \
+              -DBUILD_SHARED_LIBS=ON \
+              -DBUILD_STATIC_LIBS=ON \
+              -DBUILD_MODULES=ON \
+              -DBUILD_CLI=ON
 
-.PHONY: all clean configure build install test debug release
+.PHONY: all clean configure build modules status
 
-all: configure build
+all: clean configure build status
 
 configure:
-	@echo "=== Configuring OBINexus libpolycall v2 ==="
+	@echo "=== Configuring libpolycall v2 ==="
 	@mkdir -p $(BUILD_DIR)
 	@cd $(BUILD_DIR) && cmake $(CMAKE_FLAGS) ..
 
-build: configure
-	@echo "=== Building OBINexus libpolycall v2 ==="
-	@cd $(BUILD_DIR) && $(MAKE) -j$(shell nproc)
-	@echo "=== Build Complete ==="
-	@echo "Libraries: $(BUILD_DIR)/lib/"
-	@echo "Binaries: $(BUILD_DIR)/bin/"
+build:
+	@echo "=== Building all targets ==="
+	@cd $(BUILD_DIR) && make -j$(shell nproc)
 
-debug:
-	@$(MAKE) CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug" all
-
-release:
-	@$(MAKE) CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Release" all
-
-install: build
-	@echo "=== Installing OBINexus libpolycall v2 ==="
-	@cd $(BUILD_DIR) && $(MAKE) install
+modules: configure
+	@echo "=== Building module libraries ==="
+	@cd $(BUILD_DIR) && make -j$(shell nproc)
+	@echo "Module libraries built:"
+	@ls -la $(BUILD_DIR)/lib/*.a $(BUILD_DIR)/lib/*.so 2>/dev/null || true
 
 clean:
-	@echo "=== Cleaning build artifacts ==="
+	@echo "=== Cleaning build directory ==="
 	@rm -rf $(BUILD_DIR)
-	@rm -f lib/*.a lib/*.so* bin/*
-	@echo "Clean complete"
 
-# Create standard build directories
-dirs:
-	@mkdir -p build/obj build/lib build/bin
-	@mkdir -p lib bin
-
-# Show build status
 status:
-	@echo "=== Build Status ==="
-	@echo "Static libraries:"
-	@ls -la $(BUILD_DIR)/lib/*.a 2>/dev/null || echo "  None built"
-	@echo "Shared libraries:"
-	@ls -la $(BUILD_DIR)/lib/*.so* 2>/dev/null || echo "  None built"
+	@echo ""
+	@echo "╔════════════════════════════════════════════════╗"
+	@echo "║            Build Status Report                 ║"
+	@echo "╚════════════════════════════════════════════════╝"
+	@echo "Static Libraries (.a):"
+	@ls -lh $(BUILD_DIR)/lib/*.a 2>/dev/null || echo "  None built"
+	@echo ""
+	@echo "Shared Libraries (.so):"
+	@ls -lh $(BUILD_DIR)/lib/*.so* 2>/dev/null || echo "  None built"
+	@echo ""
 	@echo "Executables:"
-	@ls -la $(BUILD_DIR)/bin/* 2>/dev/null || echo "  None built"
+	@ls -lh $(BUILD_DIR)/bin/* 2>/dev/null || echo "  None built"
+	@echo ""
+	@echo "Build structure:"
+	@tree -L 2 $(BUILD_DIR) 2>/dev/null || ls -la $(BUILD_DIR)/
 
-# Verify build
-verify: build
-	@echo "=== Verifying Build ==="
-	@file $(BUILD_DIR)/lib/libpolycall.* 2>/dev/null || echo "Libraries not found"
-	@ldd $(BUILD_DIR)/lib/libpolycall.so 2>/dev/null || echo "Shared library check skipped"
-	@nm $(BUILD_DIR)/lib/libpolycall.a 2>/dev/null | head -5 || echo "Static library check skipped"
-
-# Quick test build
-test-build:
-	@echo "=== Test Build ==="
+quick: clean
 	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake -DBUILD_CLI=OFF ..
-	@cd $(BUILD_DIR) && $(MAKE) -j2
-	@ls -la $(BUILD_DIR)/lib/
+	@cd $(BUILD_DIR) && cmake -DBUILD_MODULES=OFF .. && make -j2
+	@echo "Quick build complete - main library only"
+
+# Target for each module
+core:
+	@echo "Building core module..."
+	@cd $(BUILD_DIR) && make core_static core_shared
+
+micro:
+	@echo "Building micro module..."
+	@cd $(BUILD_DIR) && make micro_static micro_shared
+
+adapter:
+	@echo "Building adapter module..."
+	@cd $(BUILD_DIR) && make adapter_static adapter_shared
+
+socket:
+	@echo "Building socket module..."
+	@cd $(BUILD_DIR) && make socket_static socket_shared
