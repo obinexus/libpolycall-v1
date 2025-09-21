@@ -1,0 +1,35 @@
+{
+  "version": "@PROJECT_VERSION@",
+  "arch": "@TARGET_ARCH@",
+  "modules": {
+    "core": {
+      "static": "lib/libpolycall_core.a",
+      "shared": "lib/libpolycall_core.so",
+      "exports": ["polycall_init", "polycall_dispatch", "polycall_shutdown"]
+    },
+    "socket": {
+      "static": "lib/libpolycall_socket.a", 
+      "shared": "lib/libpolycall_socket.so",
+      "exports": ["socket_connect", "socket_send", "socket_receive"]
+    },
+    "micro": {
+      "static": "lib/libpolycall_micro.a",
+      "shared": "lib/libpolycall_micro.so",
+      "exports": ["micro_register", "micro_invoke", "micro_unregister"]
+    }
+  },
+  "ffi": {
+    "python": {
+      "loader": "pypolycall",
+      "example": "from pypolycall import load; socket = load('socket')"
+    },
+    "go": {
+      "loader": "gopolycall",
+      "example": "import polycall; socket := polycall.Load(\"socket\")"
+    },
+    "lua": {
+      "loader": "luapolycall",
+      "example": "local socket = require('polycall').load('socket')"
+    }
+  }
+}
