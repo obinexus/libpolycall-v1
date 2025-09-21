@@ -1,0 +1,15 @@
+# docker-compose with libpolycall
+services:
+  polycall_runtime:
+    build: ./libpolycall
+    ports:
+      - "8089:8089"
+    environment:
+      MODE: "transport_only"
+      
+  debit_service:
+    build: ./services/debit
+    environment:
+      BINDING: "rustpolycall"
+      PORT: "8080"
+      BUSINESS_LOGIC: "enabled"  # Logic HERE, not in polycall
