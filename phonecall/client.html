@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OBINexus RIFT CALL +447488229054</title>
+  <style>
+    body { margin:0; background:#000; color:#0f0; font-family:monospace; text-align:center; }
+    video { width:49%; height:90vh; object-fit:cover; border:3px solid #700; }
+    #local { transform:scaleX(-1); }
+    #remote { filter: hue-rotate(180deg) saturate(2) contrast(1.3); }
+    h1 { font-size:3em; text-shadow:0 0 20px #f00; margin:10px; }
+  </style>
+</head>
+<body>
+  <h1>◉ RIFT CALL LIVE ◉ +447488229054</h1>
+  <video id="local" autoplay muted playsinline></video>
+  <video id="remote" autoplay playsinline></video>
+
+<script>
+navigator.mediaDevices.getUserMedia({video:true, audio:true}).then(stream => {
+  document.getElementById('local').srcObject = stream;
+
+  const ws = new WebSocket('wss://' + location.host);
+  const pc = new RTCPeerConnection();
+
+  stream.getTracks().forEach(t => pc.addTrack(t, stream));
+  pc.ontrack = e => document.getElementById('remote').srcObject = e.streams[0];
+
+  ws.onopen = () => {
+    pc.createOffer().then(offer => {
+      pc.setLocalDescription(offer);
+      ws.send(JSON.stringify({type:'offer', sdp:offer}));
+    });
+  };
+
+  ws.onmessage = async e => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'answer') await pc.setRemoteDescription(msg.sdp);
+    if (msg.candidate) await pc.addIceCandidate(msg.candidate);
+  };
+
+  pc.onicecandidate = e => e.candidate && ws.send(JSON.stringify({candidate: e.candidate}));
+});
+</script>
+</body>
+</html>

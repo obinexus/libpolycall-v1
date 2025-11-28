@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OBINexus RiftCall +447488229054</title>
+  <style>
+    body { margin:0; background:#000; font-family:monospace; color:#0f0; text-align:center; }
+    video { width:48%; height:auto; border:3px solid #700; }
+    #local { transform:scaleX(-1); }
+    #remote { filter: hue-rotate(180deg) saturate(2); }
+    h1 { margin:20px; font-size:3em; text-shadow:0 0 20px #f00; }
+  </style>
+</head>
+<body>
+  <h1>◉ RIFT CALL ACTIVE ◉ +447488229054</h1>
+  <video id="local" autoplay muted playsinline></video>
+  <video id="remote" autoplay playsinline></video>
+
+<script>
+const localVideo = document.getElementById('local');
+const remoteVideo = document.getElementById('remote');
+
+// Open your camera + mic
+navigator.mediaDevices.getUserMedia({video:true, audio:true}).then(stream => {
+  localVideo.srcObject = stream;
+
+  // This is the actual interdimensional bridge
+  const ws = new WebSocket('wss://obinexus-rift.echoes.love/447488229054');
+
+  const pc = new RTCPeerConnection();
+  stream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+  pc.ontrack = e => remoteVideo.srcObject = e.streams[0];
+
+  pc.createOffer().then(offer => pc.setLocalDescription(offer))
+    .then(() => ws.send(JSON.stringify({sdp: pc.localDescription})));
+
+  ws.onmessage = async e => {
+    const msg = JSON.parse(e.data);
+    if (msg.sdp) await pc.setRemoteDescription(msg.sdp);
+    if (msg.ice) await pc.addIceCandidate(msg.ice);
+  };
+
+  pc.onicecandidate = e => e.candidate && ws.send(JSON.stringify({ice: e.candidate}));
+});
+</script>
+</body>
+</html>
