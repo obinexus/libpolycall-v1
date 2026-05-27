@@ -184,7 +184,7 @@ bool polycall_protocol_send(
     size_t total_size = sizeof(header) + payload_length;
     if (total_size > PROTOCOL_BUFFER_SIZE) {
         snprintf(protocol_error_buffer, MAX_ERROR_LENGTH,
-                "Message too large: %zu bytes", total_size);
+                "Message too large: %u bytes", (unsigned int)total_size);
         return false;
     }
     

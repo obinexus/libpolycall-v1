@@ -1,15 +1,16 @@
 # Compiler and flags
 CC := gcc
 CFLAGS := -Wall -Wextra -I./include -fPIC
-LDFLAGS := -pthread -lssl -lcrypto
+LDFLAGS := -pthread
 
 # Platform-specific settings
 ifeq ($(OS),Windows_NT)
     LDFLAGS += -lws2_32
-    CFLAGS += -D_WIN32
+    CFLAGS += -D_WIN32 -D__USE_MINGW_ANSI_STDIO=1
     SHARED_EXT := dll
     EXE_EXT := .exe
 else
+    LDFLAGS += -lssl -lcrypto
     SHARED_EXT := so
     EXE_EXT :=
 endif
@@ -52,8 +53,15 @@ all: dirs $(STATIC_LIB) $(SHARED_LIB) $(BIN_DIR)/$(EXECUTABLE)
 
 # Create necessary directories
 .PHONY: dirs
+ifeq ($(OS),Windows_NT)
+dirs:
+	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
+	@if not exist $(LIB_DIR) mkdir $(LIB_DIR)
+	@if not exist $(BIN_DIR) mkdir $(BIN_DIR)
+else
 dirs:
 	@mkdir -p $(BUILD_DIR) $(LIB_DIR) $(BIN_DIR)
+endif
 
 # Debug build
 .PHONY: debug
@@ -109,8 +117,15 @@ endif
 
 # Clean build files
 .PHONY: clean
+ifeq ($(OS),Windows_NT)
+clean:
+	@if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
+	@if exist $(LIB_DIR) rmdir /s /q $(LIB_DIR)
+	@if exist $(BIN_DIR) rmdir /s /q $(BIN_DIR)
+else
 clean:
 	rm -rf $(BUILD_DIR) $(LIB_DIR) $(BIN_DIR)
+endif
 
 # Clean everything including installed files
 .PHONY: distclean

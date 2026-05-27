@@ -12,6 +12,9 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <direct.h>   /* _mkdir */
+/* POSIX mkdir(path, mode) → Windows _mkdir(path) — mode bits unused on Windows */
+#define mkdir(path, mode) _mkdir(path)
 #endif
 
 #define PPI_VERSION "1.0.0"
