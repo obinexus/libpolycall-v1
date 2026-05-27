@@ -4,7 +4,7 @@
 ---
 <link rel="icon" type="image/x-icon" href="rh.ico">
 
-![Founder](images/founder.png)
+![Founder](founder.png)
 ![LibPolycall Version 2 Favicon)(./favicon.png)
 ## "The future isn't coming—it's here. And it speaks every language."
 
