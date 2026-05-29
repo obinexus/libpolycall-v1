@@ -1,43 +1,37 @@
-# Build stage
+# syntax=docker/dockerfile:1.7
+
+ARG POLYCALL_VERSION=1.0.0
+
 FROM gcc:12-bookworm AS builder
 
+WORKDIR /src
+
+COPY Makefile main.c config.Polycallfile ./
+COPY include ./include
+COPY src ./src
+
+RUN make clean && \
+    make static && \
+    strip bin/polycall
+
+FROM scratch AS runtime
+
+ARG POLYCALL_VERSION
+
+LABEL org.opencontainers.image.title="LibPolyCall" \
+      org.opencontainers.image.description="Minimal package-free LibPolyCall v1 runtime image" \
+      org.opencontainers.image.version="${POLYCALL_VERSION}" \
+      org.opencontainers.image.vendor="OBINexus" \
+      org.opencontainers.image.licenses="MIT"
+
 WORKDIR /app
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    make \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder --chmod=0555 /src/bin/polycall /usr/local/bin/polycall
+COPY --from=builder --chmod=0444 /src/lib/libpolycall.a /usr/local/lib/libpolycall.a
+COPY --from=builder /src/include /usr/local/include/libpolycall
+COPY --from=builder --chmod=0444 /src/config.Polycallfile /etc/polycall/default.conf
 
-# Copy source code
-COPY . .
+USER 65532:65532
 
-# Build the library and executable
-RUN make release
-
-# Runtime stage
-FROM debian:bookworm-slim
-
-WORKDIR /app
-
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl3 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy built artifacts from builder
-COPY --from=builder /app/lib /usr/local/lib
-COPY --from=builder /app/bin /usr/local/bin
-COPY --from=builder /app/include /usr/local/include
-
-# Run ldconfig to update library cache
-RUN ldconfig
-
-# Copy default config
-COPY config.Polycallfile /etc/polycall/default.conf
-
-# Set the entrypoint to the polycall executable
-ENTRYPOINT ["polycall"]
-
-# Default: run interactive mode; override with -f <config> for non-interactive
+ENTRYPOINT ["/usr/local/bin/polycall"]
 CMD []

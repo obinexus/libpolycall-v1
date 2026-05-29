@@ -2,6 +2,8 @@
 CC := gcc
 CFLAGS := -Wall -Wextra -I./include -fPIC
 LDFLAGS := -pthread
+EXE_LDFLAGS ?= $(LDFLAGS)
+USE_OPENSSL ?= 0
 
 # Platform-specific settings
 ifeq ($(OS),Windows_NT)
@@ -10,7 +12,9 @@ ifeq ($(OS),Windows_NT)
     SHARED_EXT := dll
     EXE_EXT := .exe
 else
+ifeq ($(USE_OPENSSL),1)
     LDFLAGS += -lssl -lcrypto
+endif
     SHARED_EXT := so
     EXE_EXT :=
 endif
@@ -73,6 +77,12 @@ debug: all
 release: CFLAGS += $(RELEASE_FLAGS)
 release: all
 
+# Static release executable for minimal container runtimes
+.PHONY: static
+static: CFLAGS += $(RELEASE_FLAGS)
+static: EXE_LDFLAGS += -static
+static: all
+
 # Compile source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
@@ -91,7 +101,7 @@ $(SHARED_LIB): $(OBJS)
 
 # Link executable
 $(BIN_DIR)/$(EXECUTABLE): $(MAIN_OBJ) $(STATIC_LIB)
-	$(CC) $^ -o $@ $(LDFLAGS) -L$(LIB_DIR) -l:$(LIB_NAME).a
+	$(CC) $^ -o $@ $(EXE_LDFLAGS) -L$(LIB_DIR) -l:$(LIB_NAME).a
 
 # Install (Unix-like systems only)
 .PHONY: install
@@ -141,8 +151,12 @@ help:
 	@echo "  all        - Build everything (default)"
 	@echo "  debug      - Build with debug flags"
 	@echo "  release    - Build with release flags"
+	@echo "  static     - Build release artifacts with a static executable"
 	@echo "  clean      - Remove build files"
 	@echo "  install    - Install libraries and headers (Unix-like only)"
 	@echo "  uninstall  - Remove installed files (Unix-like only)"
 	@echo "  distclean  - Remove all generated files"
 	@echo "  help       - Show this help message"
+	@echo ""
+	@echo "Options:"
+	@echo "  USE_OPENSSL=1 - Link libssl/libcrypto when crypto APIs are used"
