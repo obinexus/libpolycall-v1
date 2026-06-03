@@ -7,16 +7,34 @@ USE_OPENSSL ?= 0
 
 # Platform-specific settings
 ifeq ($(OS),Windows_NT)
-    LDFLAGS += -lws2_32
-    CFLAGS += -D_WIN32 -D__USE_MINGW_ANSI_STDIO=1
-    SHARED_EXT := dll
-    EXE_EXT := .exe
+PLATFORM := windows
+LDFLAGS += -lws2_32
+CFLAGS += -D_WIN32 -D__USE_MINGW_ANSI_STDIO=1
+SHARED_EXT := dll
+SHARED_LDFLAGS := -shared
+EXE_EXT := .exe
 else
-ifeq ($(USE_OPENSSL),1)
-    LDFLAGS += -lssl -lcrypto
+UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
+ifeq ($(UNAME_S),Darwin)
+PLATFORM := macos
+SHARED_EXT := dylib
+SHARED_LDFLAGS := -dynamiclib
+EXE_EXT :=
+else ifeq ($(UNAME_S),Linux)
+PLATFORM := linux
+SHARED_EXT := so
+SHARED_LDFLAGS := -shared
+EXE_EXT :=
+else
+PLATFORM := unix
+SHARED_EXT := so
+SHARED_LDFLAGS := -shared
+EXE_EXT :=
 endif
-    SHARED_EXT := so
-    EXE_EXT :=
+endif
+
+ifeq ($(USE_OPENSSL),1)
+LDFLAGS += -lssl -lcrypto
 endif
 
 # Debug/Release flags
@@ -31,14 +49,14 @@ LIB_DIR := lib
 BIN_DIR := bin
 
 # Source files
-SRCS := $(wildcard $(SRC_DIR)/*.c)
+MAIN_SRC := $(SRC_DIR)/main.c
+SRCS := $(filter-out $(MAIN_SRC),$(wildcard $(SRC_DIR)/*.c))
 OBJS := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-DEPS := $(OBJS:.o=.d)
 
 # Main executable
-MAIN_SRC := main.c
 MAIN_OBJ := $(BUILD_DIR)/main.o
 EXECUTABLE := polycall$(EXE_EXT)
+DEPS := $(OBJS:.o=.d) $(MAIN_OBJ:.o=.d)
 
 # Library name
 LIB_NAME := libpolycall
@@ -57,7 +75,7 @@ all: dirs $(STATIC_LIB) $(SHARED_LIB) $(BIN_DIR)/$(EXECUTABLE)
 
 # Create necessary directories
 .PHONY: dirs
-ifeq ($(OS),Windows_NT)
+ifeq ($(PLATFORM),windows)
 dirs:
 	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
 	@if not exist $(LIB_DIR) mkdir $(LIB_DIR)
@@ -79,9 +97,24 @@ release: all
 
 # Static release executable for minimal container runtimes
 .PHONY: static
+static: static-check
 static: CFLAGS += $(RELEASE_FLAGS)
 static: EXE_LDFLAGS += -static
 static: all
+
+.PHONY: static-check
+static-check:
+ifeq ($(PLATFORM),linux)
+	@echo "Building static executable for Linux"
+else ifeq ($(PLATFORM),macos)
+	@echo "make static is unsupported on macOS because fully static executables are not available with the standard toolchain"
+	@exit 1
+else ifeq ($(PLATFORM),windows)
+	@$(CC) -dumpmachine 2>NUL | findstr /i "mingw" >NUL || (echo make static requires a MinGW GCC toolchain on Windows & exit 1)
+else
+	@echo "make static is unsupported on this Unix platform"
+	@exit 1
+endif
 
 # Compile source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
@@ -97,29 +130,35 @@ $(STATIC_LIB): $(OBJS)
 
 # Create shared library
 $(SHARED_LIB): $(OBJS)
-	$(CC) -shared -o $@ $^ $(LDFLAGS)
+	$(CC) $(SHARED_LDFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Link executable
 $(BIN_DIR)/$(EXECUTABLE): $(MAIN_OBJ) $(STATIC_LIB)
-	$(CC) $^ -o $@ $(EXE_LDFLAGS) -L$(LIB_DIR) -l:$(LIB_NAME).a
+	$(CC) $(MAIN_OBJ) $(STATIC_LIB) -o $@ $(EXE_LDFLAGS)
 
 # Install (Unix-like systems only)
 .PHONY: install
 install: all
-ifneq ($(OS),Windows_NT)
+ifeq ($(PLATFORM),windows)
+	@echo "make install is not supported on Windows"
+else
 	@mkdir -p $(INSTALL_INC_DIR)
 	@mkdir -p $(INSTALL_LIB_DIR)
 	@mkdir -p $(INSTALL_BIN_DIR)
 	cp $(INC_DIR)/*.h $(INSTALL_INC_DIR)
 	cp $(STATIC_LIB) $(SHARED_LIB) $(INSTALL_LIB_DIR)
 	cp $(BIN_DIR)/$(EXECUTABLE) $(INSTALL_BIN_DIR)
+ifeq ($(PLATFORM),linux)
 	ldconfig
+endif
 endif
 
 # Uninstall (Unix-like systems only)
 .PHONY: uninstall
 uninstall:
-ifneq ($(OS),Windows_NT)
+ifeq ($(PLATFORM),windows)
+	@echo "make uninstall is not supported on Windows"
+else
 	rm -rf $(INSTALL_INC_DIR)
 	rm -f $(INSTALL_LIB_DIR)/$(LIB_NAME).*
 	rm -f $(INSTALL_BIN_DIR)/$(EXECUTABLE)
@@ -127,7 +166,7 @@ endif
 
 # Clean build files
 .PHONY: clean
-ifeq ($(OS),Windows_NT)
+ifeq ($(PLATFORM),windows)
 clean:
 	@if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
 	@if exist $(LIB_DIR) rmdir /s /q $(LIB_DIR)
@@ -141,6 +180,9 @@ endif
 .PHONY: distclean
 distclean: clean uninstall
 
+# Ensure output directories exist before generating artifacts
+$(OBJS) $(MAIN_OBJ) $(STATIC_LIB) $(SHARED_LIB) $(BIN_DIR)/$(EXECUTABLE): | dirs
+
 # Include dependency files
 -include $(DEPS)
 
@@ -151,10 +193,10 @@ help:
 	@echo "  all        - Build everything (default)"
 	@echo "  debug      - Build with debug flags"
 	@echo "  release    - Build with release flags"
-	@echo "  static     - Build release artifacts with a static executable"
+	@echo "  static     - Build a static executable on supported platforms"
 	@echo "  clean      - Remove build files"
-	@echo "  install    - Install libraries and headers (Unix-like only)"
-	@echo "  uninstall  - Remove installed files (Unix-like only)"
+	@echo "  install    - Install libraries and headers (unsupported on Windows)"
+	@echo "  uninstall  - Remove installed files (unsupported on Windows)"
 	@echo "  distclean  - Remove all generated files"
 	@echo "  help       - Show this help message"
 	@echo ""

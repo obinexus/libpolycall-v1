@@ -6,7 +6,7 @@ FROM gcc:12-bookworm AS builder
 
 WORKDIR /src
 
-COPY Makefile main.c config.Polycallfile ./
+COPY Makefile Polycallfile ./
 COPY include ./include
 COPY src ./src
 
@@ -29,7 +29,7 @@ WORKDIR /app
 COPY --from=builder --chmod=0555 /src/bin/polycall /usr/local/bin/polycall
 COPY --from=builder --chmod=0444 /src/lib/libpolycall.a /usr/local/lib/libpolycall.a
 COPY --from=builder /src/include /usr/local/include/libpolycall
-COPY --from=builder --chmod=0444 /src/config.Polycallfile /etc/polycall/default.conf
+COPY --from=builder --chmod=0444 /src/Polycallfile /etc/polycall/default.conf
 
 USER 65532:65532
 
