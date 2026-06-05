@@ -30,4 +30,4 @@ max_cpu_per_service=2
 
 # Monitoring
 enable_metrics=true
-metrics_port=9090
+metrics_port=8090
