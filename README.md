@@ -5,7 +5,8 @@
 <link rel="icon" type="image/x-icon" href="rh.ico">
 
 ![Founder](founder.png)
-![LibPolycall Version 2 Favicon)(./favicon.png)
+
+![LibPolycall Version Favicon)(./favicon.png)
 ## "The future isn't coming—it's here. And it speaks every language."
 
 For too long, we've accepted the fragmentation of our digital ecosystem. Python talks to Python. Node.js whispers to JavaScript. Java shouts in its own dialect. Meanwhile, developers waste countless hours building bridges between languages, creating duplicate APIs, and maintaining separate implementations for what should be unified solutions.
