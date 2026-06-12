@@ -1,0 +1,33 @@
+//  build.zig.zon — zig-polycall package manifest
+//
+//  Consumers add this package with:
+//
+//    zig fetch --save \
+//      https://github.com/obinexus/zig-polycall/archive/<TAG_OR_COMMIT>.tar.gz
+//
+//  NOTE (from Zig packaging best practices):
+//  Never pin to a branch alias like #HEAD — the hash changes with every
+//  commit, breaking reproducible builds.  Always pin to a tagged release
+//  or a specific immutable commit SHA.
+//
+.{
+    .name    = "zig-polycall",
+    .version = "0.2.0",
+
+    // Minimum Zig version required to build this package.
+    .minimum_zig_version = "0.12.0",
+
+    // No external Zig dependencies — we link only against the C library
+    // that lives alongside this package (libpolycall-v2).
+    .dependencies = .{},
+
+    // Paths included when the package is fetched/archived.
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "examples",
+        "LICENSE",
+        "README.md",
+    },
+}
