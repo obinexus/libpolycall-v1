@@ -1,5 +1,11 @@
 # The Future is Now: LibPolyCall Vision Statement
 
+LibPolyCall v1.0.1 configuration uses `Polycallfile` for writable project
+topology, `Polycallrc` for global read-only runtime defaults, and
+`Polycallrc.<language>` for language overrides. See
+[docs/CONFIGURATION_STANDARD.md](docs/CONFIGURATION_STANDARD.md) for load
+order, validation, migration, and CLI commands.
+
 **From the Desk of Nnamdi Michael Okpala, Founder - OBINexusComputing**
 ---
 <link rel="icon" type="image/x-icon" href="rh.ico">

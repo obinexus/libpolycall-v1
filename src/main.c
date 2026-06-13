@@ -2,6 +2,7 @@
 #include "polycall_protocol.h"
 #include "polycall_state_machine.h"
 #include "polycall_tokenizer.h"
+#include "polycall_config.h"
 #include "network.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +18,7 @@
 #define mkdir(path, mode) _mkdir(path)
 #endif
 
-#define PPI_VERSION "1.0.0"
+#define PPI_VERSION "1.0.1"
 #define MAX_INPUT 256 
 #define MAX_PORTS 64
 #define MAX_PROGRAMS 8
@@ -718,6 +719,11 @@ static void register_signal_handlers(void) {
 int main(int argc, char* argv[]) {
     bool non_interactive = false;
     const char* config_file = NULL;
+    int config_result = polycall_config_cli(argc, argv);
+
+    if (config_result >= 0) {
+        return config_result;
+    }
     
     // Parse command line arguments
     for (int i = 1; i < argc; i++) {

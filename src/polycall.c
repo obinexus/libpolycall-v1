@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define POLYCALL_VERSION "1.0.0"
+#define POLYCALL_VERSION "1.0.1"
 #define MAX_ERROR_LENGTH 256
 
 /* Internal context structure */

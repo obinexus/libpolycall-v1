@@ -1,0 +1,9 @@
+# PolyCall read-only runtime defaults
+log_level=info
+max_connections=1000
+network_timeout=5000
+tls_enabled=true
+cert_file=/etc/polycall/cert.pem
+key_file=/etc/polycall/key.pem
+enable_metrics=true
+metrics_port=8090

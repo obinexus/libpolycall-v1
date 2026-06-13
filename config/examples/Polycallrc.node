@@ -1,0 +1,12 @@
+# Node.js read-only runtime overrides
+port=8080:8084
+server_type=node
+workspace=/opt/polycall/node
+max_connections=100
+supports_diagnostics=true
+supports_completion=true
+supports_formatting=true
+max_memory=512M
+timeout=30
+allow_remote=false
+require_auth=true

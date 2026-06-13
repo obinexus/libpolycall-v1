@@ -4,6 +4,15 @@ CFLAGS := -Wall -Wextra -I./include -fPIC
 LDFLAGS := -pthread
 EXE_LDFLAGS ?= $(LDFLAGS)
 USE_OPENSSL ?= 0
+ifeq ($(OS),Windows_NT)
+COMPILER_VERSION := $(shell $(CC) -dumpfullversion -dumpversion 2>NUL)
+COMPILER_TARGET := $(shell $(CC) -dumpmachine 2>NUL)
+COMPILER_PATH := $(shell where $(CC) 2>NUL)
+else
+COMPILER_VERSION := $(shell $(CC) -dumpfullversion -dumpversion 2>/dev/null)
+COMPILER_TARGET := $(shell $(CC) -dumpmachine 2>/dev/null)
+COMPILER_PATH := $(shell command -v $(CC) 2>/dev/null)
+endif
 
 # Platform-specific settings
 ifeq ($(OS),Windows_NT)
@@ -47,6 +56,8 @@ INC_DIR := include
 BUILD_DIR := build
 LIB_DIR := lib
 BIN_DIR := bin
+TOOLCHAIN_STAMP := $(BUILD_DIR)/.toolchain
+OBJECT_CHECK := $(BUILD_DIR)/.object-check.o
 
 # Source files
 MAIN_SRC := $(SRC_DIR)/main.c
@@ -71,7 +82,7 @@ INSTALL_BIN_DIR := $(PREFIX)/bin
 
 # Default target
 .PHONY: all
-all: dirs $(STATIC_LIB) $(SHARED_LIB) $(BIN_DIR)/$(EXECUTABLE)
+all: dirs verify-objects $(STATIC_LIB) $(SHARED_LIB) $(BIN_DIR)/$(EXECUTABLE)
 
 # Create necessary directories
 .PHONY: dirs
@@ -117,12 +128,68 @@ else
 endif
 
 # Compile source files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(TOOLCHAIN_STAMP)
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 # Compile main executable
-$(BUILD_DIR)/main.o: $(MAIN_SRC)
+$(BUILD_DIR)/main.o: $(MAIN_SRC) $(TOOLCHAIN_STAMP)
 	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+# Rebuild objects whenever compiler, target platform, architecture, or flags change.
+.PHONY: FORCE
+FORCE:
+
+ifeq ($(PLATFORM),windows)
+$(TOOLCHAIN_STAMP): FORCE | dirs
+	@if not exist build mkdir build
+	@echo CC=$(CC)>build\.toolchain.tmp
+	@echo COMPILER_PATH=$(COMPILER_PATH)>>build\.toolchain.tmp
+	@echo COMPILER_VERSION=$(COMPILER_VERSION)>>build\.toolchain.tmp
+	@echo COMPILER_TARGET=$(COMPILER_TARGET)>>build\.toolchain.tmp
+	@echo PLATFORM=$(PLATFORM)>>build\.toolchain.tmp
+	@echo CFLAGS=$(CFLAGS);>>build\.toolchain.tmp
+	@if not exist build\.toolchain (del /q build\*.o build\*.d 2>NUL & move /Y build\.toolchain.tmp build\.toolchain >NUL) else (fc /b build\.toolchain build\.toolchain.tmp >NUL || (echo Toolchain changed; removing stale build artifacts. & del /q build\*.o build\*.d lib\*.a lib\*.dll bin\polycall*.exe 2>NUL & move /Y build\.toolchain.tmp build\.toolchain >NUL))
+	@if exist build\.toolchain.tmp del /q build\.toolchain.tmp
+else
+$(TOOLCHAIN_STAMP): FORCE | dirs
+	@printf '%s\n' \
+		'CC=$(CC)' \
+		'COMPILER_PATH=$(COMPILER_PATH)' \
+		'COMPILER_VERSION=$(COMPILER_VERSION)' \
+		'COMPILER_TARGET=$(COMPILER_TARGET)' \
+		'PLATFORM=$(PLATFORM)' \
+		'CFLAGS=$(CFLAGS)' > $(TOOLCHAIN_STAMP).tmp
+	@if test ! -f $(TOOLCHAIN_STAMP) || ! cmp -s $(TOOLCHAIN_STAMP) $(TOOLCHAIN_STAMP).tmp; then \
+		echo "Toolchain changed; removing stale build artifacts."; \
+		rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/*.d \
+			$(LIB_DIR)/*.a $(LIB_DIR)/*.so $(LIB_DIR)/*.dylib \
+			$(BIN_DIR)/polycall; \
+		mv $(TOOLCHAIN_STAMP).tmp $(TOOLCHAIN_STAMP); \
+	else \
+		rm -f $(TOOLCHAIN_STAMP).tmp; \
+	fi
+endif
+
+.PHONY: objects
+objects: $(OBJS) $(MAIN_OBJ)
+
+# A relocatable link detects corrupt or foreign-format objects before final link.
+.PHONY: verify-objects
+verify-objects: $(OBJS) $(MAIN_OBJ)
+ifeq ($(PLATFORM),windows)
+	@$(CC) -r -nostdlib -o build\.object-check.o $(OBJS) $(MAIN_OBJ) >NUL 2>&1 || (echo Stale object files detected; recompiling all objects. & del /q build\*.o build\*.d 2>NUL & $(MAKE) --no-print-directory objects)
+	@$(CC) -r -nostdlib -o build\.object-check.o $(OBJS) $(MAIN_OBJ)
+	@del /q build\.object-check.o
+else
+	@$(CC) -r -nostdlib -o $(OBJECT_CHECK) $(OBJS) $(MAIN_OBJ) 2>/dev/null || \
+		(echo "Stale object files detected; recompiling all objects."; \
+		rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/*.d; \
+		$(MAKE) --no-print-directory objects)
+	@$(CC) -r -nostdlib -o $(OBJECT_CHECK) $(OBJS) $(MAIN_OBJ)
+	@rm -f $(OBJECT_CHECK)
+endif
+
+$(STATIC_LIB) $(SHARED_LIB): | verify-objects
 
 # Create static library
 $(STATIC_LIB): $(OBJS)
@@ -169,12 +236,20 @@ endif
 ifeq ($(PLATFORM),windows)
 clean:
 	@if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
-	@if exist $(LIB_DIR) rmdir /s /q $(LIB_DIR)
-	@if exist $(BIN_DIR) rmdir /s /q $(BIN_DIR)
+	@if exist "$(LIB_DIR)\*.a" del /q "$(LIB_DIR)\*.a"
+	@if exist "$(LIB_DIR)\*.dll" del /q "$(LIB_DIR)\*.dll"
+	@if exist "$(BIN_DIR)\polycall*.exe" del /q "$(BIN_DIR)\polycall*.exe"
 else
 clean:
-	rm -rf $(BUILD_DIR) $(LIB_DIR) $(BIN_DIR)
+	rm -rf $(BUILD_DIR)
+	rm -f $(LIB_DIR)/*.a $(LIB_DIR)/*.so $(LIB_DIR)/*.dylib
+	rm -f $(BIN_DIR)/polycall
 endif
+
+# Remove every compiled artifact and regenerate libraries and the CLI.
+.PHONY: rebuild
+rebuild: clean
+	$(MAKE) --no-print-directory all
 
 # Clean everything including installed files
 .PHONY: distclean
@@ -195,6 +270,7 @@ help:
 	@echo "  release    - Build with release flags"
 	@echo "  static     - Build a static executable on supported platforms"
 	@echo "  clean      - Remove build files"
+	@echo "  rebuild    - Clean and recompile all libraries and the CLI"
 	@echo "  install    - Install libraries and headers (unsupported on Windows)"
 	@echo "  uninstall  - Remove installed files (unsupported on Windows)"
 	@echo "  distclean  - Remove all generated files"
