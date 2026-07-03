@@ -22,6 +22,14 @@ CFLAGS += -D_WIN32 -D__USE_MINGW_ANSI_STDIO=1
 SHARED_EXT := dll
 SHARED_LDFLAGS := -shared
 EXE_EXT := .exe
+# $(OS) is Windows_NT regardless of which shell make will run recipes with.
+# Under MSYS2/Git-Bash/Cygwin, recipes run through a POSIX sh, so cmd.exe
+# batch syntax (if not exist/del/...) fails there. Only use batch syntax
+# when no POSIX uname is on PATH (i.e. genuine cmd.exe or PowerShell).
+WIN_UNAME := $(shell uname -s 2>/dev/null)
+ifeq (,$(findstring MINGW,$(WIN_UNAME))$(findstring MSYS,$(WIN_UNAME))$(findstring CYGWIN,$(WIN_UNAME)))
+CMD_SHELL := 1
+endif
 else
 UNAME_S := $(shell uname -s 2>/dev/null || echo Unknown)
 ifeq ($(UNAME_S),Darwin)
@@ -86,7 +94,7 @@ all: dirs verify-objects $(STATIC_LIB) $(SHARED_LIB) $(BIN_DIR)/$(EXECUTABLE)
 
 # Create necessary directories
 .PHONY: dirs
-ifeq ($(PLATFORM),windows)
+ifdef CMD_SHELL
 dirs:
 	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
 	@if not exist $(LIB_DIR) mkdir $(LIB_DIR)
@@ -121,7 +129,11 @@ else ifeq ($(PLATFORM),macos)
 	@echo "make static is unsupported on macOS because fully static executables are not available with the standard toolchain"
 	@exit 1
 else ifeq ($(PLATFORM),windows)
+ifdef CMD_SHELL
 	@$(CC) -dumpmachine 2>NUL | findstr /i "mingw" >NUL || (echo make static requires a MinGW GCC toolchain on Windows & exit 1)
+else
+	@$(CC) -dumpmachine 2>/dev/null | grep -qi mingw || (echo "make static requires a MinGW GCC toolchain on Windows"; exit 1)
+endif
 else
 	@echo "make static is unsupported on this Unix platform"
 	@exit 1
@@ -139,7 +151,7 @@ $(BUILD_DIR)/main.o: $(MAIN_SRC) $(TOOLCHAIN_STAMP)
 .PHONY: FORCE
 FORCE:
 
-ifeq ($(PLATFORM),windows)
+ifdef CMD_SHELL
 $(TOOLCHAIN_STAMP): FORCE | dirs
 	@if not exist build mkdir build
 	@echo CC=$(CC)>build\.toolchain.tmp
@@ -159,7 +171,7 @@ $(TOOLCHAIN_STAMP): FORCE | dirs
 		'COMPILER_TARGET=$(COMPILER_TARGET)' \
 		'PLATFORM=$(PLATFORM)' \
 		'CFLAGS=$(CFLAGS)' > $(TOOLCHAIN_STAMP).tmp
-	@if test ! -f $(TOOLCHAIN_STAMP) || ! cmp -s $(TOOLCHAIN_STAMP) $(TOOLCHAIN_STAMP).tmp; then \
+	@if test ! -f $(TOOLCHAIN_STAMP) || [ "$$(cat $(TOOLCHAIN_STAMP))" != "$$(cat $(TOOLCHAIN_STAMP).tmp)" ]; then \
 		echo "Toolchain changed; removing stale build artifacts."; \
 		rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/*.d \
 			$(LIB_DIR)/*.a $(LIB_DIR)/*.so $(LIB_DIR)/*.dylib \
@@ -176,7 +188,7 @@ objects: $(OBJS) $(MAIN_OBJ)
 # A relocatable link detects corrupt or foreign-format objects before final link.
 .PHONY: verify-objects
 verify-objects: $(OBJS) $(MAIN_OBJ)
-ifeq ($(PLATFORM),windows)
+ifdef CMD_SHELL
 	@$(CC) -r -nostdlib -o build\.object-check.o $(OBJS) $(MAIN_OBJ) >NUL 2>&1 || (echo Stale object files detected; recompiling all objects. & del /q build\*.o build\*.d 2>NUL & $(MAKE) --no-print-directory objects)
 	@$(CC) -r -nostdlib -o build\.object-check.o $(OBJS) $(MAIN_OBJ)
 	@del /q build\.object-check.o
@@ -233,7 +245,7 @@ endif
 
 # Clean build files
 .PHONY: clean
-ifeq ($(PLATFORM),windows)
+ifdef CMD_SHELL
 clean:
 	@if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
 	@if exist "$(LIB_DIR)\*.a" del /q "$(LIB_DIR)\*.a"
