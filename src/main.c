@@ -566,7 +566,9 @@ static bool add_port_mapping(const char* service_name, uint16_t host_port, uint1
 
 /* Service discovery and initialization */
 static bool discover_and_init_services(void) {
-    char config_path[512];
+    char config_path[600];
+    char entry_path[600];
+    struct stat entry_stat;
     FILE* config;
     char line[256];
     size_t services_found = 0;
@@ -578,9 +580,15 @@ static bool discover_and_init_services(void) {
 
     /* Look for service configurations */
     while ((dir_control.dir_entry = readdir(dir_control.current_dir)) != NULL) {
-        if (dir_control.dir_entry->d_type != DT_DIR ||
-            strcmp(dir_control.dir_entry->d_name, ".") == 0 ||
+        if (strcmp(dir_control.dir_entry->d_name, ".") == 0 ||
             strcmp(dir_control.dir_entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        /* mingw-w64's dirent has no d_type; stat the entry to filter directories */
+        snprintf(entry_path, sizeof(entry_path), "%s/%s",
+                 dir_control.base_path, dir_control.dir_entry->d_name);
+        if (stat(entry_path, &entry_stat) != 0 || !S_ISDIR(entry_stat.st_mode)) {
             continue;
         }
 
