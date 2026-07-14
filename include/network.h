@@ -14,7 +14,7 @@
     #include <arpa/inet.h>
 #endif
 
-#include <pthread.h>
+#include "polycall_pthread.h"
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>

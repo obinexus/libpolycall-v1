@@ -1,7 +1,7 @@
 # Compiler and flags
 CC := gcc
 CFLAGS := -Wall -Wextra -I./include -fPIC
-LDFLAGS := -pthread
+LDFLAGS :=
 EXE_LDFLAGS ?= $(LDFLAGS)
 USE_OPENSSL ?= 0
 ifeq ($(OS),Windows_NT)
@@ -26,7 +26,7 @@ EXE_EXT := .exe
 # Under MSYS2/Git-Bash/Cygwin, recipes run through a POSIX sh, so cmd.exe
 # batch syntax (if not exist/del/...) fails there. Only use batch syntax
 # when no POSIX uname is on PATH (i.e. genuine cmd.exe or PowerShell).
-WIN_UNAME := $(shell uname -s 2>/dev/null)
+WIN_UNAME := $(shell uname -s 2>NUL)
 ifeq (,$(findstring MINGW,$(WIN_UNAME))$(findstring MSYS,$(WIN_UNAME))$(findstring CYGWIN,$(WIN_UNAME)))
 CMD_SHELL := 1
 endif
@@ -48,6 +48,7 @@ SHARED_EXT := so
 SHARED_LDFLAGS := -shared
 EXE_EXT :=
 endif
+LDFLAGS += -pthread
 endif
 
 ifeq ($(USE_OPENSSL),1)

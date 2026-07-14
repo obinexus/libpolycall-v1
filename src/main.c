@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-#include <pthread.h>
+#include "polycall_pthread.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
