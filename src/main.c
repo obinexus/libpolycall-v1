@@ -18,7 +18,7 @@
 #define mkdir(path, mode) _mkdir(path)
 #endif
 
-#define PPI_VERSION "1.0.1"
+#define PPI_VERSION "1.0.0"
 #define MAX_INPUT 256 
 #define MAX_PORTS 64
 #define MAX_PROGRAMS 8
