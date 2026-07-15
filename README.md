@@ -1,6 +1,6 @@
 # The Future is Now: LibPolyCall Vision Statement
 
-LibPolyCall v1.0.1 configuration uses `Polycallfile` for writable project
+LibPolyCall v1.0.0 configuration uses `Polycallfile` for writable project
 topology, `Polycallrc` for global read-only runtime defaults, and
 `Polycallrc.<language>` for language overrides. See
 [docs/CONFIGURATION_STANDARD.md](docs/CONFIGURATION_STANDARD.md) for load
